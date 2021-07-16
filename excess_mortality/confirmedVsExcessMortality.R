@@ -116,7 +116,7 @@ summary(model)
 
 ggplot(excess, aes(confirmed100k, excess100k)) +
   geom_point(aes(size = population2020), alpha=0.6) +
-  labs(size="population", x="confirmed COVID-19 mortality", y="excess mortality") +
+  labs(title="confirmed vs excess mortality, per country, per 100k population", size="population", x="confirmed COVID-19 mortality", y="excess mortality") +
   scale_size(labels=comma) +
   
   geom_abline(intercept = 1, color = "grey") +
