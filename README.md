@@ -10,7 +10,7 @@ See it live: https://cwverhey.shinyapps.io/SARS-CoV-2_variantsNL/
 
 ## [SARS-CoV-2 R NL](SARS-CoV-2_R_NL)
 
-R Shiny app to display the estimates for the reproductive number over time. The data is unedited from RIVM, but includes archived data to visualize the unreliability of the short-term 95% CI. Updated weekly.
+R Shiny app to display the estimates for the reproduction number over time. The data is unedited from RIVM, but includes archived data to visualize the unreliability of the short-term 95% CI. Updated weekly.
 
 See it live: https://cwverhey.shinyapps.io/R_NL/
 
