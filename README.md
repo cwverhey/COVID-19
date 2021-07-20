@@ -2,7 +2,7 @@
 
 ## [SARS-CoV-2 variants NL](SARS-CoV-2_variantsNL)
 
-Analysis that derives the number of confirmed SARS-CoV-2 cases per variant, based on overall confirmed cases and per-variant data from the RIVM study samples. Displayed in an R Shiny app. Updated weekly.
+Analysis that derives the number of confirmed SARS-CoV-2 cases in the Netherlands per variant, based on overall confirmed cases and per-variant data from the RIVM study samples. Displayed in an R Shiny app. Updated weekly.
 
 See it live: https://cwverhey.shinyapps.io/SARS-CoV-2_variantsNL/
 
@@ -10,7 +10,7 @@ See it live: https://cwverhey.shinyapps.io/SARS-CoV-2_variantsNL/
 
 ## [SARS-CoV-2 R NL](SARS-CoV-2_R_NL)
 
-R Shiny app to display the estimates for the reproduction number over time. The data is unedited from RIVM, but includes archived data to visualize the unreliability of the short-term 95% CI. Updated weekly.
+R Shiny app to display the estimates for the reproduction number in the Netherlands over time. The data is unedited from RIVM, but includes archived data to visualize the unreliability of the short-term 95% CI. Updated weekly.
 
 See it live: https://cwverhey.shinyapps.io/R_NL/
 
@@ -18,7 +18,7 @@ See it live: https://cwverhey.shinyapps.io/R_NL/
 
 ## [Excess Mortality vs Confirmed COVID-19 Deaths](excess_mortality)
 
-Comparison of excess mortality (mortality 2020/2021 compared to the respective monthly averages from 2015-2019) versus the number of confirmed COVID-19 deaths. Updated periodically.
+Comparison of excess mortality per country (mortality 2020/2021 compared to the respective monthly averages from 2015-2019) versus the number of confirmed COVID-19 deaths in the same period. Updated periodically.
 
 ![graph preview](excess_mortality/confirmedVsExcessMortality.png)
 
