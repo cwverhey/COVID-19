@@ -101,7 +101,7 @@ ui <- fluidPage(
                          <br />
                          Het is ook belangrijk op te merken dat deze cijfers alleen de geteste personen betreffen, en dus niet alle geïnfecteerden. Het RIVM maakt voorlopig ook <a href='https://data.rivm.nl/meta/srv/dut/catalog.search#/metadata/097155aa-75eb-4caa-8ed3-4c6edb80467e'>geen schattingen meer over het aantal besmettelijke personen</a>.<br />
                          <br />
-                         Databronnen: RIVM open data <a href='https://www.rivm.nl/coronavirus-covid-19/virus/varianten'>kiemsurveillance</a> en <a href='https://data.rivm.nl/geonetwork/srv/dut/catalog.search#/metadata/1c0fcd57-1102-4620-9cfa-441e93ea5604?tab=general'>infectierapportage</a><br />
+                         Databronnen: RIVM open data <a href='https://www.rivm.nl/coronavirus-covid-19/virus/varianten'>kiemsurveillance</a> (wekelijks bijgewerkt) en <a href='https://data.rivm.nl/geonetwork/srv/dut/catalog.search#/metadata/1c0fcd57-1102-4620-9cfa-441e93ea5604?tab=general'>infectierapportage</a><br />
                          Verwerking: CW Verhey (caspar @ verhey.net) <a href='https://github.com/cwverhey/COVID-19/tree/master/SARS-CoV-2_variantsNL'>(broncode op GitHub)</a>"))
             ))
     )
