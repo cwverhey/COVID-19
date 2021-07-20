@@ -6,7 +6,7 @@ Analysis that derives the number of confirmed SARS-CoV-2 cases per variant, base
 
 See it live: https://cwverhey.shinyapps.io/SARS-CoV-2_variantsNL/
 
-[[SARS-CoV-2_variantsNL/screenshot.png]]
+<img src="SARS-CoV-2_variantsNL/screenshot.png" />
 
 ## [SARS-CoV-2 R NL](SARS-CoV-2_R_NL)
 
