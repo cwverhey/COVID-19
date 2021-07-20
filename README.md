@@ -6,7 +6,7 @@ Analysis that derives the number of confirmed SARS-CoV-2 cases per variant, base
 
 See it live: https://cwverhey.shinyapps.io/SARS-CoV-2_variantsNL/
 
-![screenshot preview](SARS-CoV-2_variantsNL/screenshot.png)
+[[SARS-CoV-2_variantsNL/screenshot.png]]
 
 ## [SARS-CoV-2 R NL](SARS-CoV-2_R_NL)
 
@@ -14,13 +14,13 @@ R Shiny app to display the estimates for the reproductive number over time. The 
 
 See it live: https://cwverhey.shinyapps.io/R_NL/
 
-![screenshot preview](SARS-CoV-2_R_NL/screenshot.png)
+[[SARS-CoV-2_R_NL/screenshot.png]]
 
 ## [Excess Mortality vs Confirmed COVID-19 Deaths](excess_mortality)
 
 Comparison of excess mortality (mortality 2020/2021 compared to the respective monthly averages from 2015-2019) versus the number of confirmed COVID-19 deaths. Updated periodically.
 
-![graph preview](excess_mortality/confirmedVsExcessMortality.png)
+[[excess_mortality/confirmedVsExcessMortality.png]]
 
 ## Older documents
 
