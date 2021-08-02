@@ -5,12 +5,18 @@ library("shinyjs")
 library("ggplot2")
 library("scales")
 
+# source files need to be in <jsondir>/reproductiegetal_*.json
+jsondir = '/Volumes/caspar/RIVM'
+
+# remove cache file to update
+cachefile = 'R.app.cache.RData'
+
 Sys.setlocale("LC_TIME","nl_NL.UTF-8")
 
-if(!file.exists("R.app.cache.RData")) {
+if(!file.exists(cachefile)) {
   
   # load JSONs retrieved every day from https://data.rivm.nl/meta/srv/dut/catalog.search#/metadata/ed0699d1-c9d5-4436-8517-27eb993eab6e
-  file.ls <- list.files(path='/Volumes/caspar/RIVM', pattern=glob2rx("reproductiegetal_*.json"), full.names=T)
+  file.ls <- list.files(path=jsondir, pattern=glob2rx("reproductiegetal_*.json"), full.names=T)
   
   if(length(file.ls) == 0) stop("Error: no input files!")
   
@@ -53,7 +59,7 @@ if(!file.exists("R.app.cache.RData")) {
 
 }
 
-load("R.app.cache.RData")
+load(cachefile)
 print("loaded")
 
 #------------------------------
@@ -99,7 +105,7 @@ ui <- fluidPage(
                        <h5>R</h5>
                        De beschikbare publicatiedata hangen af van de weergegeven periode.<br />
                        <br />
-                       Nieuwe data komt - op dit moment - beschikbaar op dinsdag en vrijdag, maar wordt nog niet automatisch in deze dynamische grafiek opgenomen.
+                       Nieuwe data komt - op dit moment - beschikbaar op dinsdag en vrijdag. Dit wordt nog niet automatisch in deze pagina opgenomen; het duurt daarom 1-2 dagen voordat deze pagina beschikt over de data van de nieuwste publicatiedatum.<br /> 
                        <br />
                        Bron: RIVM <a href='https://data.rivm.nl/meta/srv/dut/catalog.search#/metadata/ed0699d1-c9d5-4436-8517-27eb993eab6e'>covid-19 reproductiegetal</a> (historische data)<br />
                        <br />
