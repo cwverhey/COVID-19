@@ -9,15 +9,15 @@ lastupdate = format(Sys.Date(), "%d %b %Y")
 
 setwd("~/Progs/COVID-19/SARS-CoV-2_variantsNL")
 
-# install.packages(c("tidyverse","jsonlite","data.table","scales","lubridate","grid","stringr"))
+# install.packages(c("dplyr","jsonlite","data.table","scales","lubridate","stringr","rsconnect"))
 
-library("tidyverse")
+library("dplyr")
 library("jsonlite")
 library("data.table")
 library("scales")
 library("lubridate")
-library("grid")
 library("stringr")
+library("rsconnect")
 
 #
 # Gather data
@@ -126,10 +126,10 @@ unique(variants$variant) # inspect result
 # select data to save
 data <- variants %>% select(!c(`95low%`,`95high%`))
 all_weeks <- sort(unique(data$week))
+all_variants <- na.omit(sort(unique(data$variant)))
 default_selected_variants <- c(na.omit(str_match(all_variants, '.* \\(.*\\)'))) # default variants to display in app
 
 # create color palette
-all_variants <- na.omit(sort(unique(data$variant)))
 colors <- c('#00FFFF', '#00FFFF', '#00FF89', '#00F700', '#B4D500', '#F8AE00', '#FF7D00', '#FF297C', '#FF00E2', '#FF00FF', '#9D35FF', '#0097FF', '#00ADE7', '#00A485', '#009000', '#007A00', '#526100', '#814300', '#9C0000', '#B8001F')
 colors <- colors[c(seq(1,length(all_variants)))]
 names(colors) <- all_variants
@@ -137,4 +137,7 @@ names(colors) <- all_variants
 # save
 save(lastupdate, data, all_weeks, all_variants, colors, default_selected_variants, file="data.RData")
 
-
+# upload to shinyapps.io
+# rsconnect::setAccountInfo(name="<ACCOUNT>", token="<TOKEN>", secret="<SECRET>")
+# rsconnect::configureApp("<APPNAME>")
+deployApp()
