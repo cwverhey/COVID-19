@@ -15,6 +15,7 @@ library("data.table")
 library("scales")
 library("lubridate")
 library("grid")
+library("stringr")
 
 #
 # Gather data
@@ -22,6 +23,19 @@ library("grid")
 
 # get kiemsurveillance variant data from RIVM (df: variants)
 
+# https://www.rivm.nl/coronavirus-covid-19/virus/varianten
+# https://data.rivm.nl/meta/srv/dut/catalog.search#/metadata/4678ae0b-2580-4cdb-a50b-d229575269ae
+kiemdata <- "https://data.rivm.nl/covid-19/COVID-19_varianten.csv"
+variants <- read.csv2(kiemdata) %>%
+              mutate(variant = ifelse(Variant_name == '', Variant_code, paste0(Variant_name, " (",Variant_code,")")),
+                     week = gsub("/(\\d)$","/0\\1", paste0(isoyear(Date_of_statistics_week_start),'/',isoweek(Date_of_statistics_week_start))), # yyyy/ww (left pad week with 0)
+                     value = Variant_cases,
+                     samplesize = Sample_size) %>%
+              select(variant, week, value, samplesize)
+
+# --
+# Previous method: from RIVM PDF
+#
 #library("tabulizer")
 #variants <- extract_tables(file = "https://www.rivm.nl/sites/default/files/2021-07/Varianten%20coronavirus%20tabel%20Nederlands%202%20juli%202021%20%282%29.pdf", method="stream")
 #variants <- data.frame(variants)
@@ -35,17 +49,7 @@ library("grid")
 #as.numeric(as.list(samplesize)[as.character(variants$week)]) -> variants$samplesize # reinsert sample size
 #rm(samplesize) # remove temporary data storage
 #variants$week <- gsub("/(\\d)$","/0\\1", variants$week) # fix single digit week numbers: left-pad with 0
-
-# https://www.rivm.nl/coronavirus-covid-19/virus/varianten
-# https://data.rivm.nl/meta/srv/dut/catalog.search#/metadata/4678ae0b-2580-4cdb-a50b-d229575269ae
-kiemdata <- "https://data.rivm.nl/covid-19/COVID-19_varianten.csv"
-variants <- read.csv2(kiemdata) %>%
-              mutate(variant = ifelse(Variant_name == '', Variant_code, paste0(Variant_name, " (",Variant_code,")")),
-                     week = gsub("/(\\d)$","/0\\1", paste0(isoyear(Date_of_statistics_week_start),'/',isoweek(Date_of_statistics_week_start))), # yyyy/ww (left pad week with 0)
-                     value = Variant_cases,
-                     samplesize = Sample_size) %>%
-              select(variant, week, value, samplesize)
-
+# --
 
 
 # get # of cases per week (temporary df: cases)
@@ -79,6 +83,8 @@ for(i in seq(1:nrow(variants))) {
   }
 }; rm(i, binom)
 
+# --
+# Previous method: from RIVM PDF
 # fix up the variant names
 #variant_rename <- c("Alfa* (B.1.1.7) (Verenigd Koninkrijk)" = "B.1.1.7 (Alpha, UK)",
 #                    "Alfa met E484K mutatie" = "B.1.1.7, mutatie E484K (Alpha)",
@@ -110,13 +116,15 @@ for(i in seq(1:nrow(variants))) {
 # for(i in seq(1, length(variant_rename))) {
 #   variants$variant[variants$variant == names(variant_rename[i])] <- variant_rename[i]
 # }; rm(i, variant_rename)
+# --
 
+variants$variant <- str_replace(variants$variant, "(.*) \\((.*)\\)", "\\2 \\(\\1\\)")
 unique(variants$variant) # inspect result
 
 # select data to save
 data <- variants %>% select(!c(`95low%`,`95high%`))
 all_weeks <- sort(unique(data$week))
-default_selected_variants <- c("Delta (B.1.617.2)") # default variants to display in app
+default_selected_variants <- c(na.omit(str_match(all_variants, '.* \\(.*\\)'))) # default variants to display in app
 
 # create color palette
 all_variants <- na.omit(sort(unique(data$variant)))
@@ -126,3 +134,5 @@ names(colors) <- all_variants
 
 # save
 save(lastupdate, data, all_weeks, all_variants, colors, default_selected_variants, file="data.RData")
+
+

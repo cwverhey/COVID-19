@@ -55,7 +55,7 @@ ui <- fluidPage(
             sliderTextInput("weeks","Periode (jaar/week):", choices = all_weeks, selected = c(all_weeks[1], all_weeks[length(all_weeks)]), dragRange = T, force_edges = T, hide_min_max = T),
             br(),
             
-            checkboxInput("showTotal", "Totaal aantal positief geteste mensen", value = F),
+            checkboxInput("showTotal", "Totaal aantal positief geteste mensen", value = T),
             checkboxInput("week2date", "Datums ipv weeknummer", value = T),
             checkboxInput("logscale", "Logaritmische schaal", value = F),
             br(),
@@ -90,7 +90,7 @@ ui <- fluidPage(
                          <br />
                          Dit is niet zichtbaar in de ruwe aantallen uit de kiemsurveillance van het RIVM, aangezien er geen vaste verhouding is tussen het totaal aantal cases per week en het aantal steekproefmonsters.<br/>
                          <br />
-                         Ook het procentuele aandeel van elke variant (in de media vaak gerapporteerd) biedt hierin slecht inzicht: het relatieve aandeel van een variant kan zelfs toenemen terwijl het absolute aantal infecties van die variant afneemt (en andersom).<br />
+                         Ook het procentuele aandeel van elke variant (in de media het meest gerapporteerd) biedt maar beperkt inzicht: het relatieve aandeel van een variant kan zelfs toenemen terwijl het absolute aantal infecties van die variant afneemt (en andersom).<br />
                          <br />
                          <b>Methode</b><br />
                          De puntschatter van het aantal nieuwe cases per variant is gebaseerd op het relatieve aandeel van elke variant in de wekelijkse kiemsurveillance-steekproef, geëxtrapoleerd naar het totaal aantal positieve besmettingen per week.<br />
@@ -99,10 +99,13 @@ ui <- fluidPage(
                          <br />
                          Overige oorzaken van meetafwijkingen zijn niet gekwantificeerd, zoals de theoretisch mogelijke verschillen in test-bereidheid tussen mensen met verschillende varianten (ascertainment bias).<br />
                          <br />
-                         Het is ook belangrijk op te merken dat deze cijfers alleen de geteste personen betreffen, en dus niet alle geïnfecteerden. Het RIVM maakt voorlopig ook <a href='https://data.rivm.nl/meta/srv/dut/catalog.search#/metadata/097155aa-75eb-4caa-8ed3-4c6edb80467e'>geen schattingen meer over het aantal besmettelijke personen</a>.<br />
+                         Het is ook belangrijk op te merken dat deze cijfers alleen de geteste personen betreffen, en dus niet alle geïnfecteerden. Het RIVM maakt vooralsnog ook <a href='https://data.rivm.nl/meta/srv/dut/catalog.search#/metadata/097155aa-75eb-4caa-8ed3-4c6edb80467e'>geen schattingen meer over het aantal besmettelijke personen</a>.<br />
                          <br />
-                         Databronnen: RIVM open data <a href='https://www.rivm.nl/coronavirus-covid-19/virus/varianten'>kiemsurveillance</a> (wekelijks bijgewerkt) en <a href='https://data.rivm.nl/geonetwork/srv/dut/catalog.search#/metadata/1c0fcd57-1102-4620-9cfa-441e93ea5604?tab=general'>infectierapportage</a><br />
-                         Verwerking: CW Verhey (caspar @ verhey.net) <a href='https://github.com/cwverhey/COVID-19/tree/master/SARS-CoV-2_variantsNL'>(broncode op GitHub)</a>"))
+                         Databronnen:<br />
+                         RIVM open data <a href='https://data.rivm.nl/meta/srv/dut/catalog.search#/metadata/4678ae0b-2580-4cdb-a50b-d229575269ae'>kiemsurveillance</a> (wekelijks bijgewerkt op dinsdag, <a href='https://www.rivm.nl/coronavirus-covid-19/virus/varianten'>meer informatie</a>) en <a href='https://data.rivm.nl/geonetwork/srv/dut/catalog.search#/metadata/1c0fcd57-1102-4620-9cfa-441e93ea5604?tab=general'>infectierapportage</a><br />
+                         <br />
+                         Verwerking:<br />
+                         CW Verhey (caspar @ verhey.net) <a href='https://github.com/cwverhey/COVID-19/tree/master/SARS-CoV-2_variantsNL'>(broncode op GitHub)</a>"))
             ))
     )
 )
