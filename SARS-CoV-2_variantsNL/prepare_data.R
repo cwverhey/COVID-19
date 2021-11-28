@@ -43,7 +43,6 @@ cases$cases <- c(NA, diff(cases$cumsum))
 cases <- cases %>% group_by(week) %>% summarise(cases = sum(cases)) %>% filter(week >= min(variants$week))
 
 # add # of cases to variant df
-variantsbackup <- variants
 variants <- full_join(variants,cases,by="week")
 rm(cases)
 
@@ -86,5 +85,5 @@ save(lastupdate, data, all_weeks, all_variants, colors, default_selected_variant
 
 # upload to shinyapps.io
 # rsconnect::setAccountInfo(name="<ACCOUNT>", token="<TOKEN>", secret="<SECRET>")
-rsconnect::configureApp("SARS-CoV-2_variantsNL")
+# rsconnect::configureApp("SARS-CoV-2_variantsNL")
 deployApp()
