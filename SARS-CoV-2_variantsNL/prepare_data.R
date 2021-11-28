@@ -9,6 +9,8 @@ lastupdate = format(Sys.Date(), "%d %b %Y")
 
 setwd("~/Progs/COVID-19/SARS-CoV-2_variantsNL")
 
+# install.packages(c("tidyverse","jsonlite","data.table","scales","lubridate","grid","stringr"))
+
 library("tidyverse")
 library("jsonlite")
 library("data.table")
