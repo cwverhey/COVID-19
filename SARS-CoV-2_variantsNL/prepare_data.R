@@ -9,7 +9,7 @@ lastupdate = format(Sys.Date(), "%d %b %Y")
 
 setwd("~/Progs/COVID-19/SARS-CoV-2_variantsNL")
 
-# install.packages(c("dplyr","jsonlite","data.table","scales","lubridate","stringr","rsconnect"))
+# install.packages(c("dplyr","jsonlite","data.table","scales","lubridate","stringr","rsconnect",'ggplot2', 'shiny', 'shinyWidgets'))
 
 library("dplyr")
 library("jsonlite")
@@ -34,25 +34,6 @@ variants <- read.csv2(kiemdata) %>%
                      value = Variant_cases,
                      samplesize = Sample_size) %>%
               select(variant, week, value, samplesize)
-
-# --
-# Previous method: from RIVM PDF
-#
-#library("tabulizer")
-#variants <- extract_tables(file = "https://www.rivm.nl/sites/default/files/2021-07/Varianten%20coronavirus%20tabel%20Nederlands%202%20juli%202021%20%282%29.pdf", method="stream")
-#variants <- data.frame(variants)
-#variants <- variants[,-c(2)] # remove totals column
-#colnames(variants) <- variants[1,] # set colnames
-#colnames(variants)[1] <- "variant" # set colname
-#samplesize <- variants[2,] # store sample size in separate vector
-#variants <- variants[-c(1,2),] # remove rows with sample size & titles
-#variants <- melt(setDT(variants), id.vars = c("variant"), variable.name = "week") # reshape to long
-#variants$value <- as.numeric(variants$value) # to numeric
-#as.numeric(as.list(samplesize)[as.character(variants$week)]) -> variants$samplesize # reinsert sample size
-#rm(samplesize) # remove temporary data storage
-#variants$week <- gsub("/(\\d)$","/0\\1", variants$week) # fix single digit week numbers: left-pad with 0
-# --
-
 
 # get # of cases per week (temporary df: cases)
 cases <- read.csv2("https://data.rivm.nl/covid-19/COVID-19_aantallen_gemeente_cumulatief.csv")
@@ -85,41 +66,7 @@ for(i in seq(1:nrow(variants))) {
   }
 }; rm(i, binom)
 
-# --
-# Previous method: from RIVM PDF
 # fix up the variant names
-#variant_rename <- c("Alfa* (B.1.1.7) (Verenigd Koninkrijk)" = "B.1.1.7 (Alpha, UK)",
-#                    "Alfa met E484K mutatie" = "B.1.1.7, mutatie E484K (Alpha)",
-#                     "Beta (B.1.351) (Zuid-Afrika)" = "B.1.351 (Beta, ZA)",
-#                     "Gamma (P.1) (Brazilië)" = "P.1 (Gamma, BR)",
-#                     "Delta (B.1.617.2) (India)" = "B.1.617.2 (Delta, IN)",
-#                     "Eta (B.1.525)" = "B.1.525 (Eta)",
-#                     "Epsilon (B.1.427/4.29) (Californië)" = "B.1.427/429 (Epsilon, CA USA)",
-#                     "Theta (P.3) (Filipijnen)" = "P.3 (Theta, PH)",
-#                     "Kappa (B.1.617.1) (India)" = "B.1.617.1 (Kappa, IN)",
-#                     "Variant Bretagne (B.1.616)" = "B.1.616 (Bretagne FR)",
-#                     "Colombiaanse variant (B.1.621)" = "B.1.621 (CO)",
-#                     "Lambda (C.37)" = "C.37 (Lambda)",
-#                     "Iota (B.1.526)" = "B.1.526 (Iota)",
-#                     "Zeta (P.2)" = "P.2 (Zeta)"
-#                     )
-# 
-# variant_rename <- c("Alfa* (B.1.1.7)" = "Alfa (B.1.1.7)",
-#                     "B.1.1.7, mutatie E484K (Alpha)" = "Alpha (B.1.1.7), mutatie E484K",
-#                     "B.1.427/4.29 **" = "B.1.427/4.29",
-#                     "B.1.525 (Eta)" = "Eta (B.1.525)",
-#                     "Theta  P.3**" = "Theta (P.3)",
-#                     "Colombian variant (B.1.621)" = "B.1.621 (Colombia)",
-#                     "C.37 (Lambda)" = "Lambda (C.37)",
-#                     "B.1.526 (Iota)" = "Iota (B.1.526)",
-#                     "Variant Bretagne (B.1.616)" = "B.1.616 (Bretagne)")
-#                     
-# 
-# for(i in seq(1, length(variant_rename))) {
-#   variants$variant[variants$variant == names(variant_rename[i])] <- variant_rename[i]
-# }; rm(i, variant_rename)
-# --
-
 variants$variant <- str_replace(variants$variant, "(.*) \\((.*)\\)", "\\2 \\(\\1\\)")
 unique(variants$variant) # inspect result
 
@@ -139,5 +86,5 @@ save(lastupdate, data, all_weeks, all_variants, colors, default_selected_variant
 
 # upload to shinyapps.io
 # rsconnect::setAccountInfo(name="<ACCOUNT>", token="<TOKEN>", secret="<SECRET>")
-# rsconnect::configureApp("<APPNAME>")
+rsconnect::configureApp("SARS-CoV-2_variantsNL")
 deployApp()
