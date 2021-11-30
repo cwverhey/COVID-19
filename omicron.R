@@ -1,4 +1,16 @@
 #
+# Simulation to estimate R-values for Delta and Omicron, based on confirmed cases in South Africa
+#
+# Assumptions:
+# Delta starts on 1 Sept 2021 at 9000 cases;
+# Omicron starts on 1 Oct 2021 at 1 case;
+# In this time frame, R stays constant per variant (no change in restrictions in SA);
+# R(delta) = 0.75, R(omicron) = 1.95.
+#
+# Note: automatic fitting of parameters (start date of omicron, R-values) might lead to more accurate fit of model.
+#
+
+#
 # load case data from Our World In Data -----
 #
 # https://ourworldindata.org/covid-cases
@@ -18,7 +30,6 @@ owid_SA = owid_full %>%
 #
 # daily change: Delta cases * 0.944, Omicron cases * 1.143 (5-day change: delta * 0.75, omicron * 1.95)
 #
-# (values are selected manually)
 
 # growth rate per day, per variant (R ≈ daily r ^ 5)
 r_day = c( 0.75^(1/5), 1.95^(1/5) )
