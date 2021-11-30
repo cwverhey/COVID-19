@@ -10,6 +10,12 @@
 #
 # Note: automatic fitting of parameters (start date of omicron, R-values) might lead to more accurate fit of model.
 #
+# Note: looking at data from September suggests that Delta would have mostly died out by November, which is why
+# in simulation over 95% of cases are attributed to Omicron by the end of November. However, this is not in line
+# with the results from the 61 SARS-CoV-2-positive passengers who were tested in NL on 26 Nov: only 13 of them
+# carried the Omicron variant. This suggests that Delta made a revival during the simulated period, it's R increasing,
+# and as such the R for Omicron being overestimated in this simulation.
+#
 
 library("dplyr")
 library("ggplot2")
