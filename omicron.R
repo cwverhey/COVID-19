@@ -11,6 +11,9 @@
 # Note: automatic fitting of parameters (start date of omicron, R-values) might lead to more accurate fit of model.
 #
 
+library("dplyr")
+library("ggplot2")
+
 #
 # load case data from Our World In Data -----
 #
@@ -33,10 +36,10 @@ owid_SA = owid_full %>%
 #
 
 # growth rate per day, per variant (R ≈ daily r ^ 5)
-r_day = c( 0.75^(1/5), 1.95^(1/5) )
+r_day = c( 'delta' = 0.75^(1/5), 'omikron' = 1.95^(1/5) )
 
 # initial cases on simulation day 1 (1 sep 2021)
-cases = c(9000, 0)
+cases = c('delta' = 9000, 'omikron' = 0)
 
 # iterate over all days
 for(d in sort(owid_SA$date)) {
@@ -68,7 +71,7 @@ ggplot(owid_SA, aes(x = date)) +
   geom_smooth(aes(y=new_cases, color="cases (geom_smooth())"), lty=3) +
   geom_line(aes(y=new_cases_smoothed, color="cases (OWiD smoothed)"), lwd=.75) +
   geom_point(aes(y=new_cases, color="cases (raw)"), cex=.75, lwd=0.1) +
-  geom_line(aes(y=predict_cases, color="simulated"), lwd=1) +
+  geom_line(aes(y=sim_cases, color="simulated"), lwd=1) +
   #scale_y_continuous(trans='log10') +
   labs(x = 'day', y = 'new cases', title='SA cases per day', color='') +
   scale_color_manual(values = colors) +
