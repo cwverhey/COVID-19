@@ -16,8 +16,8 @@
 # carried the Omicron variant - though not all test results have been reported yet. As soon as all test reports are
 # in, they might imply that Delta made a revival during the simulated period, it's R increasing, and as such
 # the R for Omicron being overestimated in this simulation. On the other hand, the (possibly biased) data on
-# https://outbreak.info/situation-reports/omicron?selected=ZAF#longitudinal suggests it's not unlikely that
-# Omikron makes up 95% of cases.
+# https://outbreak.info/situation-reports/omicron?selected=ZAF#longitudinal or https://covariants.org/per-country
+# suggests it's not unlikely that Omikron makes up 95% of cases.
 #
 
 library("dplyr")
