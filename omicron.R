@@ -51,6 +51,7 @@ for(d in sort(owid_SA$date)) {
 #
 
 colors = c("simulated" = "blue", "cases (raw)" = 'black', "cases (OWiD smoothed)" = 'darkgreen', "cases (geom_smooth())" = 'grey')
+
 ggplot(owid_SA, aes(x = date)) +
   geom_smooth(aes(y=new_cases, color="cases (geom_smooth())"), lty=3) +
   geom_line(aes(y=new_cases_smoothed, color="cases (OWiD smoothed)"), lwd=.75) +
@@ -58,5 +59,7 @@ ggplot(owid_SA, aes(x = date)) +
   geom_line(aes(y=predict_cases, color="simulated"), lwd=1) +
   #scale_y_continuous(trans='log10') +
   labs(x = 'day', y = 'new cases', title='SA cases per day', color='') +
-  scale_color_manual(values = colors)
+  scale_color_manual(values = colors) +
+  scale_x_date(date_breaks = "1 week")
+
   
