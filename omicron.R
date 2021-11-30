@@ -5,7 +5,8 @@
 # Delta starts on 1 Sept 2021 at 9000 cases;
 # Omicron starts on 1 Oct 2021 at 1 case;
 # In this time frame, R stays constant per variant (no change in restrictions in SA);
-# R(delta) = 0.75, R(omicron) = 1.95.
+# R(delta) = 0.75, R(omicron) = 1.95;
+# Daily growth rate is approximated by R^(1/5).
 #
 # Note: automatic fitting of parameters (start date of omicron, R-values) might lead to more accurate fit of model.
 #
