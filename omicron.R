@@ -5,19 +5,19 @@
 # Delta starts on 1 Sept 2021 at 9000 cases;
 # Omicron starts on 1 Oct 2021 at 1 case;
 # In this time frame, R stays constant per variant (no change in restrictions in SA);
-# R(delta) = 0.75, R(omicron) = 1.95;
+# R(delta) = 0.75, R(omicron) = 2.00;
 # Daily growth rate is approximated by R^(1/5).
 #
 # Note: automatic fitting of parameters (start date of omicron, R-values) might lead to more accurate fit of model.
 #
 # Note: looking at data from September suggests that Delta would have mostly died out by November, which is why
-# in this simulation over 95% of cases are attributed to Omicron by the end of November. However, this is not in line
+# in this simulation, over 95% of cases are attributed to Omicron by the end of November. However, this is not in line
 # with the results from the 61 SARS-CoV-2-positive passengers who were tested in NL on 26 Nov: only 13 of them
 # carried the Omicron variant - though not all test results have been reported yet. As soon as all test reports are
-# in, they might imply that Delta made a revival during the simulated period, it's R increasing, and as such
-# the R for Omicron being overestimated in this simulation. On the other hand, the (possibly biased) data on
+# in, they might imply that Delta made a revival during the simulated period, its R increasing, and as such
+# the R for Omicron being overestimated in this simulation. On the other hand, the (probably biased) data on
 # https://outbreak.info/situation-reports/omicron?selected=ZAF#longitudinal or https://covariants.org/per-country
-# suggests it's not unlikely that Omikron makes up 95% of cases.
+# suggests it's not unlikely that Omicron makes up 95% of cases.
 #
 
 library("dplyr")
@@ -45,16 +45,20 @@ owid_SA = owid_full %>%
 #
 
 # growth rate per day, per variant (R ≈ daily r ^ 5)
-r_day = c( 'delta' = 0.75^(1/5), 'omikron' = 1.95^(1/5) )
+R = c('delta' = 0.75, 'omicron' = 2.00)
+r_day = R^(1/5)
 
 # initial cases on simulation day 1 (1 sep 2021)
-cases = c('delta' = 9000, 'omikron' = 0)
+cases = c('delta' = 9000, 'omicron' = 0)
+
+# first omicron case
+omicron_first_case = as.Date("2021-10-01")
 
 # iterate over all days
 for(d in sort(owid_SA$date)) {
   
   # add first patient with Omicron at specified date
-  if(d == as.Date("2021-10-01")) cases[2] = 1
+  if(d == omicron_first_case) cases['omicron'] = 1
 
   # print date and cases per variant
   cat(as.character(as.Date(d, origin="1970-01-01")))
@@ -62,6 +66,8 @@ for(d in sort(owid_SA$date)) {
   
   # save total cases for this date
   owid_SA$sim_cases[owid_SA$date == d] = sum(cases)
+  owid_SA$sim_delta[owid_SA$date == d] = cases['delta']
+  owid_SA$sim_omicron[owid_SA$date == d] = cases['omicron']
   
   # calculate cases for next day
   cases = cases * r_day
@@ -74,16 +80,18 @@ for(d in sort(owid_SA$date)) {
 # plot cases from OurWorldInData and simulation
 #
 
-colors = c("simulated" = "blue", "cases (raw)" = 'black', "cases (OWiD smoothed)" = 'darkgreen', "cases (geom_smooth())" = 'grey')
+colors = c("simulated (total)" = "blue", "simulated (omicron)" = "red", "simulated (delta)" = "green", "cases (raw)" = 'black', "cases (OWiD smoothed)" = 'darkgreen', "cases (geom_smooth())" = 'grey')
 
 ggplot(owid_SA, aes(x = date)) +
   geom_smooth(aes(y=new_cases, color="cases (geom_smooth())"), lty=3) +
   geom_line(aes(y=new_cases_smoothed, color="cases (OWiD smoothed)"), lwd=.75) +
   geom_point(aes(y=new_cases, color="cases (raw)"), cex=.75, lwd=0.1) +
-  geom_line(aes(y=sim_cases, color="simulated"), lwd=1) +
+  geom_line(aes(y=sim_cases, color="simulated (total)"), lwd=1) +
+  geom_line(aes(y=sim_delta, color="simulated (delta)"), lwd=1) +
+  geom_line(aes(y=sim_omicron, color="simulated (omicron)"), lwd=1) +
   #scale_y_continuous(trans='log10') +
-  labs(x = 'day', y = 'new cases', title='SA cases per day', color='') +
+  labs(x = 'day', y = 'new cases', title=paste0('SA cases per day [R(Δ)=',R['delta'],', R(Ο)=',R['omicron'],', first Ο case = ',omicron_first_case,']'), color='') +
   scale_color_manual(values = colors) +
-  scale_x_date(date_breaks = "1 week")
+  scale_x_date(date_breaks = "1 week", minor_breaks = "1 day")
 
   
