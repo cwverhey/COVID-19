@@ -59,12 +59,12 @@ ui <- fluidPage(
       br(),
       
       h4('Omicron'),
-      sliderInput("Romicron", label = "R", min = 1.0, max = 3.0, step = 0.01, round = -2.31, value = 2.00),
+      sliderInput("Romicron", label = "R", min = 1.0, max = 3.0, step = 0.01, round = -2, value = 2.68),
       sliderInput("first_case_omicron",
                   label="initial case",
                   min = min(owid_SA$date),
                   max = max(owid_SA$date),
-                  value=as.Date("2021-10-01"),
+                  value=as.Date("2021-10-21"),
                   timeFormat="%b %d"),
       br(),
       
