@@ -54,12 +54,12 @@ ui <- fluidPage(
     sidebarPanel(
       
       h4('Delta'),
-      sliderInput("Rdelta", label = "R", min = 0.6, max = 0.9, step = 0.01, round = -2, value = 0.75),
+      sliderInput("Rdelta", label = "R", min = 0.5, max = 1.0, step = 0.01, round = -2, value = 0.74),
       sliderInput("init_cases_delta", label = "initial cases (Sep 1)", min = 6000, max = 14000, value = 10000),
       br(),
       
       h4('Omicron'),
-      sliderInput("Romicron", label = "R", min = 1.5, max = 2.5, step = 0.01, round = -2, value = 2.00),
+      sliderInput("Romicron", label = "R", min = 1.0, max = 3.0, step = 0.01, round = -2.31, value = 2.00),
       sliderInput("first_case_omicron",
                   label="initial case",
                   min = min(owid_SA$date),
@@ -130,21 +130,22 @@ server <- function(input, output, session) {
     owid_SA = sim(R, cases, input$first_case_omicron)
     
     # calculate correlation
-    corr = cor(owid_SA$new_cases[!is.na(owid_SA$new_cases)], owid_SA$sim_cases[!is.na(owid_SA$new_cases)])
+    corr_raw = cor(owid_SA$new_cases[!is.na(owid_SA$new_cases)], owid_SA$sim_cases[!is.na(owid_SA$new_cases)])
+    corr_owid_smoothed = cor(owid_SA$new_cases_smoothed, owid_SA$sim_cases)
     
     # plot
-    subtitle = paste0("Delta: R=",format(R['delta'],nsmall=2),", cases on Sep 01=",input$init_cases_delta," | Omicron: R=",format(R['omicron'],nsmall=2),", first case=",format(input$first_case_omicron,"%b %d")," | R(omicron)/R(delta)=",round(R['omicron']/R['delta'],digits=1)," | cor(raw cases, simulated) = ",round(corr,3))
+    subtitle = paste0("Delta: R=",format(R['delta'],nsmall=2),", ",input$init_cases_delta," cases on Sep 01 ■ Omicron: R=",format(R['omicron'],nsmall=2),", first case on ",format(input$first_case_omicron,"%b %d")," ■ R(omicron)/R(delta)=",round(R['omicron']/R['delta'],digits=1),"\ncor(raw cases, simulated) = ",round(corr_raw,3)," ■ cor(OWiD smoothed cases, simulated) = ",round(corr_owid_smoothed,3))
     plot <- ggplot(owid_SA, aes(x = date)) +
       geom_smooth(aes(y=new_cases, color="cases (geom_smooth())"), lty=3) +
       geom_line(aes(y=new_cases_smoothed, color="cases (OWiD smoothed)"), lwd=.75) +
       geom_point(aes(y=new_cases, color="cases (raw)"), cex=.75, lwd=0.1) +
-      geom_line(aes(y=sim_cases, color="simulated (total)"), lwd=1) +
+      geom_line(aes(y=sim_cases, color="simulated (total)"), lwd=2.5) +
       geom_line(aes(y=sim_delta, color="simulated (delta)"), lwd=1) +
       geom_line(aes(y=sim_omicron, color="simulated (omicron)"), lwd=1) +
       labs(x = 'day', y = 'new cases', title=paste0('South Africa cases per day'), color='', subtitle = subtitle) +
       scale_color_manual(values = colors) +
       scale_x_date(date_breaks = "1 week", minor_breaks = "1 day", date_labels="%b %d") +
-      theme(text = element_text(size = 15), plot.caption = element_text(hjust = 0, size = 12))
+      theme(text = element_text(size = 15), plot.title = element_text(face="bold"), plot.subtitle = element_text(lineheight=1.2, vjust=-0.5))
     
     # plot options
     if(input$logscale) plot <- plot + scale_y_continuous(trans='log10') + annotation_logticks(sides = "l")
