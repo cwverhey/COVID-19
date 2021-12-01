@@ -1,7 +1,9 @@
 library("dplyr")
 library("ggplot2")
+library("shiny")
+library("rsconnect")
 
-setwd("~/Progs/COVID-19/omicron_SA")
+setwd("~/R/COVID-19/omicron_SA")
 
 #
 # load case data from Our World In Data -----

@@ -1,7 +1,6 @@
 library("dplyr")
 library("ggplot2")
 library("shiny")
-library("shinyWidgets")
 
 load("owid_SA.RData")
 
