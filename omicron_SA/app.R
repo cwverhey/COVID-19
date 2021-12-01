@@ -1,0 +1,175 @@
+library("dplyr")
+library("ggplot2")
+library("shiny")
+library("shinyWidgets")
+
+load("owid_SA.RData")
+
+colors = c("simulated (total)" = "blue", "simulated (omicron)" = "red", "simulated (delta)" = "green", "cases (raw)" = 'black', "cases (OWiD smoothed)" = 'darkgreen', "cases (geom_smooth())" = 'grey')
+
+#
+# SIMULATION ----
+#
+
+sim = function(R, cases, omicron_first_case) {
+  
+  # daily growth
+  r_day = R^(1/5)
+  
+  # iterate over all days
+  for(d in sort(owid_SA$date)) {
+    
+    # add first patient with Omicron at specified date
+    if(d == omicron_first_case) cases['omicron'] = 1
+    
+    # save total cases for this date
+    owid_SA$sim_cases[owid_SA$date == d] = sum(cases)
+    owid_SA$sim_delta[owid_SA$date == d] = cases['delta']
+    owid_SA$sim_omicron[owid_SA$date == d] = cases['omicron']
+    
+    # calculate cases for next day
+    cases = cases * r_day
+    
+  }
+  
+  return(owid_SA)
+  
+}
+
+#
+# UI ----
+#
+ui <- fluidPage(
+  
+  tags$head(
+    tags$style(HTML("
+            div#plot { min-width: 750px; }
+            div.col-sm-4 { max-width: 450px; }")
+    )
+  ),
+  
+  titlePanel("Omicron growth simulation (South Africa cases)"),
+  
+  sidebarLayout(
+    
+    sidebarPanel(
+      
+      h4('Delta'),
+      sliderInput("Rdelta", label = "R", min = 0.6, max = 0.9, step = 0.01, round = -2, value = 0.75),
+      sliderInput("init_cases_delta", label = "initial cases (Sep 1)", min = 6000, max = 14000, value = 10000),
+      br(),
+      
+      h4('Omicron'),
+      sliderInput("Romicron", label = "R", min = 1.5, max = 2.5, step = 0.01, round = -2, value = 2.00),
+      sliderInput("first_case_omicron",
+                  label="initial case",
+                  min = min(owid_SA$date),
+                  max = max(owid_SA$date),
+                  value=as.Date("2021-10-01"),
+                  timeFormat="%b %d"),
+      br(),
+      
+      h4('Plot'),
+      checkboxInput("logscale", "Logaritmic Y-axis", value = F),
+      br(),
+      
+      HTML("<small>Simulation: CW Verhey <a href='https://github.com/cwverhey/COVID-19/tree/master/omicron_SA'>GitHub</a> / <a href='https://twitter.com/casparverhey'>Twitter</a></small>")
+    ),
+    
+    mainPanel(
+      tabsetPanel(
+        tabPanel("Plot", br(), plotOutput("plot")),
+        tabPanel("Table",
+                 br(),
+                 dataTableOutput("table")
+        ),
+        tabPanel("Info",
+                 HTML("<br />
+            <h4>Simulation to estimate R-values for Delta and Omicron</h4>
+            based on confirmed cases in South Africa<br /><br />
+            Assumptions:<br />
+            In this time frame, R stays constant per variant (there was no change in restrictions in SA);<br />
+            Daily growth rate is approximated by R^(1/5).<br />
+            <br />
+            Legend:<br />
+            <b>cases (raw)</b> reported cases per day (there is a clear day-of-the-week effect);<br />
+            <b>cases (OWiD smoothed)</b> 7 day average cases from Our World In Data;<br />
+            <b>cases (geom_smooth())</b> LOESS smoothed cases, using ggplot2 function geom_smooth().<br />
+            <br />
+            Note:<br />
+            Looking at data from September suggests that Delta would have mostly died out by November, which is why
+            in the default values in this simulation, over 95% of cases are attributed to Omicron by the end of November. However, this is not in line
+            with the results from the 61 SARS-CoV-2-positive passengers who were tested in NL on 26 Nov: only 13 of them
+            carried the Omicron variant - though not all test results have been reported yet. As soon as all test reports are
+            in, they might imply that Delta made a revival during the simulated period, its R increasing, and as such
+            the R for Omicron being overestimated in this simulation. On the other hand, the (probably biased) GISAID data (<a href='https://outbreak.info/situation-reports/omicron?selected=ZAF#longitudinal'>outbreak.info</a> or <a href='https://covariants.org/per-country'>covariants.org</a>)
+            suggests it's not unlikely that Omicron makes up 95% of cases.<br />
+            <br />
+            
+            Credits:<br />
+            Case data: <a href='https://ourworldindata.org/covid-cases'>Our World In Data</a><br />
+            Simulation/UI: CW Verhey (caspar @ verhey.net) <a href='https://github.com/cwverhey/COVID-19/tree/master/omicron_SA'>GitHub</a> / <a href='https://twitter.com/casparverhey'>Twitter</a>"))
+      ))
+  )
+)
+
+#
+# SERVER ----
+#
+
+server <- function(input, output, session) {
+  
+  output$plot <- renderPlot({
+    
+    # growth rate per day, per variant (R ≈ daily r ^ 5)
+    R = c('delta' = input$Rdelta, 'omicron' = input$Romicron)
+    
+    # initial cases on simulation day 1 (1 sep 2021)
+    cases = c('delta' = input$init_cases_delta, 'omicron' = 0)
+    
+    # run sim
+    owid_SA = sim(R, cases, input$first_case_omicron)
+    
+    # calculate correlation
+    corr = cor(owid_SA$new_cases[!is.na(owid_SA$new_cases)], owid_SA$sim_cases[!is.na(owid_SA$new_cases)])
+    
+    # plot
+    subtitle = paste0("Delta: R=",format(R['delta'],nsmall=2),", cases on Sep 01=",input$init_cases_delta," | Omicron: R=",format(R['omicron'],nsmall=2),", first case=",format(input$first_case_omicron,"%b %d")," | R(omicron)/R(delta)=",round(R['omicron']/R['delta'],digits=1)," | cor(raw cases, simulated) = ",round(corr,3))
+    plot <- ggplot(owid_SA, aes(x = date)) +
+      geom_smooth(aes(y=new_cases, color="cases (geom_smooth())"), lty=3) +
+      geom_line(aes(y=new_cases_smoothed, color="cases (OWiD smoothed)"), lwd=.75) +
+      geom_point(aes(y=new_cases, color="cases (raw)"), cex=.75, lwd=0.1) +
+      geom_line(aes(y=sim_cases, color="simulated (total)"), lwd=1) +
+      geom_line(aes(y=sim_delta, color="simulated (delta)"), lwd=1) +
+      geom_line(aes(y=sim_omicron, color="simulated (omicron)"), lwd=1) +
+      labs(x = 'day', y = 'new cases', title=paste0('South Africa cases per day'), color='', subtitle = subtitle) +
+      scale_color_manual(values = colors) +
+      scale_x_date(date_breaks = "1 week", minor_breaks = "1 day", date_labels="%b %d") +
+      theme(text = element_text(size = 15), plot.caption = element_text(hjust = 0, size = 12))
+    
+    # plot options
+    if(input$logscale) plot <- plot + scale_y_continuous(trans='log10') + annotation_logticks(sides = "l")
+    
+    print(plot)
+    
+  }, height=700)
+  
+  output$table <- renderDataTable({
+    
+    # growth rate per day, per variant (R ≈ daily r ^ 5)
+    R = c('delta' = input$Rdelta, 'omicron' = input$Romicron)
+    
+    # initial cases on simulation day 1 (1 sep 2021)
+    cases = c('delta' = input$init_cases_delta, 'omicron' = 0)
+    
+    # run sim
+    owid_SA = sim(R, cases, input$first_case_omicron)
+    
+    owid_SA
+  })
+  
+}
+
+#--------------------------
+
+shinyApp(ui = ui, server = server)
