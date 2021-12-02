@@ -99,7 +99,7 @@ ui <- fluidPage(
             <b>cases (OWiD smoothed)</b> 7 day average cases from Our World In Data;<br />
             <b>cases (geom_smooth())</b> LOESS smoothed cases, using ggplot2 function geom_smooth().<br />
             <br />
-            Default values are a local optimum in RMSE (raw cases vs simulation), given the data on December 2nd 2021. The later the selected initial Omicron case, the higher Romicron needs to be.<br />
+            Default values are a local optimum in RMSE (raw cases vs simulation), given the data on December 2nd 2021. The later the selected initial Omicron case, the higher R(omicron) needs to be.<br />
             <br />
             Note:<br />
             Looking at data from September suggests that Delta would have mostly died out by November, which is why
@@ -137,7 +137,7 @@ server <- function(input, output, session) {
     
     # calculate correlation
     rmse_raw = rmse(owid_SA$new_cases[!is.na(owid_SA$new_cases)], owid_SA$sim_cases[!is.na(owid_SA$new_cases)])
-    rmse_owid_smoothed = rmse(owid_SA$new_cases_smoothed, owid_SA$sim_cases)
+    rmse_owid_smoothed = rmse(owid_SA$new_cases_smoothed[!is.na(owid_SA$new_cases_smoothed)], owid_SA$sim_cases[!is.na(owid_SA$new_cases_smoothed)])
     
     # plot
     subtitle = paste0("Delta: R=",format(R['delta'],nsmall=2),", ",input$init_cases_delta," cases on Aug 26 ■ Omicron: R=",format(R['omicron'],nsmall=2),", first case on ",format(input$first_case_omicron,"%b %d")," ■ R(omicron)/R(delta)=",round(R['omicron']/R['delta'],digits=1),"\nRMSE(raw cases, simulated)=",round(rmse_raw,3)," ■ RMSE(OWiD smoothed cases, simulated)=",round(rmse_owid_smoothed,3))
