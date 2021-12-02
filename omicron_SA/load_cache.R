@@ -19,4 +19,9 @@ owid_SA = owid_full %>%
 
 save(owid_SA, file="owid_SA.RData")
 
+#
+# calculate optimized RMSE
+#
+source('find_optimum.R')
+
 deployApp()
