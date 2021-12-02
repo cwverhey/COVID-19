@@ -3,6 +3,7 @@ library("ggplot2")
 library("shiny")
 
 load("owid_SA.RData")
+load("owid_SA_rmse.RData")
 
 colors = c("simulated (total)" = "blue", "simulated (omicron)" = "red", "simulated (delta)" = "green", "cases (raw)" = 'black', "cases (OWiD smoothed)" = 'darkgreen', "cases (geom_smooth())" = 'grey')
 
@@ -63,12 +64,12 @@ ui <- fluidPage(
       br(),
       
       h4('Omicron'),
-      sliderInput("Romicron", label = "R", min = 1.0, max = 10.0, step = 0.01, round = -2, value = 2.33),
+      sliderInput("Romicron", label = "R", min = 1.0, max = 10.0, step = 0.01, round = -2, value = 3.54),
       sliderInput("first_case_omicron",
                   label="initial case",
                   min = min(owid_SA$date),
                   max = max(owid_SA$date),
-                  value=as.Date("2021-10-12"),
+                  value=as.Date("2021-10-27"),
                   timeFormat="%b %d"),
       br(),
       
@@ -89,31 +90,44 @@ ui <- fluidPage(
         tabPanel("Info",
                  HTML("<br />
             <h4>Simulation to estimate R-values for Delta and Omicron</h4>
-            based on confirmed cases in South Africa<br /><br />
-            Assumptions:<br />
+            <h5>based on total confirmed SARS-CoV-2 cases in South Africa</h5>
+            <br />
+            <h4>Purpose</h4>
+            The simulation shows how uncertain the ratio between R(delta) and R(omicron) is;
+            real-world data will fit the model similarly over a vast range of R(omicron) values, as long as
+            a suitable date for the first omicron case is chosen. The later the initial omicron case, the higher R(omicron) needs to be.<br />
+            <br />
+            Default values are a local optimum in RMSE (raw cases vs simulation), given the case data available on December 2nd 2021, 17:50 UTC:<br />
+            <br />"),
+                 h5("optimal RMSE per day of first omicron case"),
+                 plotOutput("plot_rmse"),
+                 HTML("<i>calculated on December 2nd 2021, 17:50 UTC</i><br />"),
+                 HTML("<br />"),
+                 h5("parameters for optimal RMSE per day of first omicron case"),
+                 dataTableOutput("table_rmse"),
+                 HTML("<i>calculated on December 2nd 2021, 17:50 UTC</i><br />"),
+                 HTML("<br />
+            <h4>Assumptions</h4>
             In this time frame, R stays constant per variant (there was no change in restrictions in SA);<br />
             Daily growth rate is approximated by R^(1/5).<br />
             <br />
-            Legend:<br />
+            <h4>Legend</h4>
             <b>cases (raw)</b> reported cases per day (there is a clear day-of-the-week effect);<br />
             <b>cases (OWiD smoothed)</b> 7 day average cases from Our World In Data;<br />
             <b>cases (geom_smooth())</b> LOESS smoothed cases, using ggplot2 function geom_smooth().<br />
             <br />
-            Default values are a local optimum in RMSE (raw cases vs simulation), given the data on December 2nd 2021. The later the selected initial Omicron case, the higher R(omicron) needs to be.<br />
-            <br />
-            Note:<br />
+            <h4>Note</h4>
             Looking at data from September suggests that Delta would have mostly died out by November, which is why
             in the default values in this simulation, over 95% of cases are attributed to Omicron by the end of November. However, this is not in line
-            with the results from the 61 SARS-CoV-2-positive passengers who were tested in NL on 26 Nov: only 13 of them
-            carried the Omicron variant - though not all test results have been reported yet. As soon as all test reports are
-            in, they might imply that Delta made a revival during the simulated period, its R increasing, and as such
-            the R for Omicron being overestimated in this simulation. On the other hand, the (probably biased) GISAID data (<a href='https://outbreak.info/situation-reports/omicron?selected=ZAF#longitudinal'>outbreak.info</a> or <a href='https://covariants.org/per-country'>covariants.org</a>)
+            with the results from the 61 SARS-CoV-2-positive passengers who were tested in NL on 26 Nov: only 14 of them
+            carried the Omicron variant - though it is unclear if all 61 positive passengers have been sequenced. This might imply that Delta made a revival during the simulated period, that its R increased, and as such that
+            the R for Omicron is overestimated in this simulation. On the other hand, the (probably biased) GISAID data (<a href='https://outbreak.info/situation-reports/omicron?selected=ZAF#longitudinal'>outbreak.info</a> or <a href='https://covariants.org/per-country'>covariants.org</a>)
             suggests it's not unlikely that Omicron makes up 95% of cases.<br />
             <br />
-            
-            Credits:<br />
+            <h4>Credits</h4>
+            Simulation/UI: CW Verhey (caspar @ verhey.net) <a href='https://github.com/cwverhey/COVID-19/tree/master/omicron_SA'>source: GitHub</a> / <a href='https://twitter.com/casparverhey'>Twitter</a><br />
             Case data: <a href='https://ourworldindata.org/covid-cases'>Our World In Data</a><br />
-            Simulation/UI: CW Verhey (caspar @ verhey.net) <a href='https://github.com/cwverhey/COVID-19/tree/master/omicron_SA'>GitHub</a> / <a href='https://twitter.com/casparverhey'>Twitter</a>"))
+            <br />"))
       ))
   )
 )
@@ -173,6 +187,20 @@ server <- function(input, output, session) {
     
     owid_SA
   })
+  
+  output$plot_rmse <- renderPlot({
+    
+    plot2 <- ggplot(rmse_df, aes(x=first_omicron)) +
+      geom_point(aes(y=RMSE)) + 
+      scale_x_date(date_breaks = "1 week", minor_breaks = "1 day", date_labels="%b %d") +
+      scale_y_continuous(limits=c(0,NA)) +
+      labs(x='initial omicron case', y='optimal RMSE')
+    
+    print(plot2)
+    
+  })
+  
+  output$table_rmse <- renderDataTable(rmse_df, options = list(pageLength = 10, searching = FALSE, lengthChange = FALSE))
   
 }
 

@@ -45,7 +45,7 @@ R = c('delta' = 0.75, 'omicron' = 2.5)
 delta_init_cases = 10000
 
 # iterate over days
-for(omicron_first_case in tail(owid_SA$date,-19)) {
+for(omicron_first_case in owid_SA$date[20:85]) {
   
   # define 9 directions
   dir_R = c(+1, +1, +1, 0, 0, 0, -1, -1, -1)
@@ -131,12 +131,18 @@ for(omicron_first_case in tail(owid_SA$date,-19)) {
   
   result = append(result, list(c(first_omicron = as.character(omicron_first_case),
                                  delta_cases = delta_init_cases,
-                                 Rdelta = R['delta'],
-                                 Romicron = R['omicron'],
-                                 ratio = R['omicron']/R['delta'],
+                                 R = R['delta'],
+                                 R = R['omicron'],
+                                 ratio = unname(R['omicron']/R['delta']),
                                  RMSE = err[2])))
 
 }
 
 results = as.data.frame(do.call(rbind, result)) %>% mutate_all(as.numeric) %>% mutate(first_omicron = as.Date(first_omicron, origin="1970-1-1"))
-ggplot(results, aes(x=first_omicron)) + geom_point(aes(y=RMSE))
+ggplot(results, aes(x=first_omicron)) +
+  geom_point(aes(y=RMSE)) + 
+  scale_x_date(date_breaks = "1 week", minor_breaks = "1 day", date_labels="%b %d") +
+  scale_y_continuous(limits=c(0,NA))
+
+rmse_df = results
+save(rmse_df, file='owid_SA_rmse.RData')
