@@ -14,7 +14,7 @@ owid_full = read.csv('https://covid.ourworldindata.org/data/owid-covid-data.csv'
   mutate(date = as.Date(date))
 
 owid_SA = owid_full %>%
-  filter(location == 'South Africa', date >= "2021-09-01") %>%
+  filter(location == 'South Africa', date >= "2021-08-26") %>%
   select(date, new_cases, new_cases_smoothed)
 
 save(owid_SA, file="owid_SA.RData")
