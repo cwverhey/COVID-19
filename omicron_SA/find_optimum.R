@@ -14,24 +14,18 @@ sim = function(R, delta_init_cases, omicron_first_case) {
   # daily growth
   r_day = R^(1/5)
   
-  # initial cases
-  cases = c('delta' = delta_init_cases, 'omicron' = 0)
+  # first day
+  day1 = min(owid_SA$date)
   
-  # iterate over all days
-  for(d in sort(owid_SA$date)) {
-    
-    # add first patient with Omicron at specified date
-    if(d == omicron_first_case) cases['omicron'] = 1
-    
-    # save total cases for this date
-    owid_SA$sim_cases[owid_SA$date == d] = sum(cases)
-    owid_SA$sim_delta[owid_SA$date == d] = cases['delta']
-    owid_SA$sim_omicron[owid_SA$date == d] = cases['omicron']
-    
-    # calculate cases for next day
-    cases = cases * r_day
-    
-  }
+  # delta
+  owid_SA$sim_delta = delta_init_cases * r_day['delta'] ^ as.numeric(owid_SA$date - day1)
+  
+  # omicron
+  owid_SA$sim_omicron = r_day['omicron'] ^ as.numeric(owid_SA$date - omicron_first_case)
+  owid_SA$sim_omicron[owid_SA$date < omicron_first_case] = 0
+  
+  # total
+  owid_SA$sim_cases = owid_SA$sim_delta + owid_SA$sim_omicron
   
   return(owid_SA)
   

@@ -11,26 +11,23 @@ colors = c("simulated (total)" = "blue", "simulated (omicron)" = "red", "simulat
 # SIMULATION ----
 #
 
-sim = function(R, cases, omicron_first_case) {
+sim = function(R, delta_init_cases, omicron_first_case) {
   
   # daily growth
   r_day = R^(1/5)
   
-  # iterate over all days
-  for(d in sort(owid_SA$date)) {
-    
-    # add first patient with Omicron at specified date
-    if(d == omicron_first_case) cases['omicron'] = 1
-    
-    # save total cases for this date
-    owid_SA$sim_cases[owid_SA$date == d] = sum(cases)
-    owid_SA$sim_delta[owid_SA$date == d] = cases['delta']
-    owid_SA$sim_omicron[owid_SA$date == d] = cases['omicron']
-    
-    # calculate cases for next day
-    cases = cases * r_day
-    
-  }
+  # first day
+  day1 = min(owid_SA$date)
+  
+  # delta
+  owid_SA$sim_delta = delta_init_cases * (r_day['delta'] ^ as.numeric(owid_SA$date - day1))
+  
+  # omicron
+  owid_SA$sim_omicron = r_day['omicron'] ^ as.numeric(owid_SA$date - omicron_first_case)
+  owid_SA$sim_omicron[owid_SA$date < omicron_first_case] = 0
+  
+  # total
+  owid_SA$sim_cases = owid_SA$sim_delta + owid_SA$sim_omicron
   
   return(owid_SA)
   
@@ -97,15 +94,13 @@ ui <- fluidPage(
             real-world data will fit the model similarly over a vast range of R(omicron) values, as long as
             a suitable date for the first omicron case is chosen. The later the initial omicron case, the higher R(omicron) needs to be.<br />
             <br />
-            Default values are a local optimum in RMSE (raw cases vs simulation), given the case data available on December 2nd 2021, 17:50 UTC:<br />
+            Default values are a local optimum in RMSE (raw cases vs simulation):<br />
             <br />"),
                  h5("optimal RMSE per day of first omicron case"),
                  plotOutput("plot_rmse"),
-                 HTML("<i>calculated on December 2nd 2021, 17:50 UTC</i><br />"),
                  HTML("<br />"),
                  h5("parameters for optimal RMSE per day of first omicron case"),
                  dataTableOutput("table_rmse"),
-                 HTML("<i>calculated on December 2nd 2021, 17:50 UTC</i><br />"),
                  HTML("<br />
             <h4>Assumptions</h4>
             In this time frame, R stays constant per variant (there was no change in restrictions in SA);<br />
@@ -143,11 +138,8 @@ server <- function(input, output, session) {
     # growth rate per day, per variant (R ≈ daily r ^ 5)
     R = c('delta' = input$Rdelta, 'omicron' = input$Romicron)
     
-    # initial cases on simulation day 1 (26 Aug 2021)
-    cases = c('delta' = input$init_cases_delta, 'omicron' = 0)
-    
     # run sim
-    owid_SA = sim(R, cases, input$first_case_omicron)
+    owid_SA = sim(R, input$init_cases_delta, input$first_case_omicron)
     
     # calculate correlation
     rmse_raw = rmse(owid_SA$new_cases[!is.na(owid_SA$new_cases)], owid_SA$sim_cases[!is.na(owid_SA$new_cases)])
@@ -158,10 +150,10 @@ server <- function(input, output, session) {
     plot <- ggplot(owid_SA, aes(x = date)) +
       geom_smooth(aes(y=new_cases, color="cases (geom_smooth())"), lty=3) +
       geom_line(aes(y=new_cases_smoothed, color="cases (OWiD smoothed)"), lwd=.75) +
-      geom_point(aes(y=new_cases, color="cases (raw)"), cex=.75, lwd=0.1) +
       geom_line(aes(y=sim_cases, color="simulated (total)"), lwd=2.5) +
       geom_line(aes(y=sim_delta, color="simulated (delta)"), lwd=1) +
       geom_line(aes(y=sim_omicron, color="simulated (omicron)"), lwd=1) +
+      geom_point(aes(y=new_cases, color="cases (raw)"), cex=.75, lwd=0.1) +
       labs(x = 'day', y = 'new cases', title=paste0('South Africa cases per day'), color='', subtitle = subtitle) +
       scale_color_manual(values = colors) +
       scale_x_date(date_breaks = "1 week", minor_breaks = "1 day", date_labels="%b %d") +
@@ -179,11 +171,8 @@ server <- function(input, output, session) {
     # growth rate per day, per variant (R ≈ daily r ^ 5)
     R = c('delta' = input$Rdelta, 'omicron' = input$Romicron)
     
-    # initial cases on simulation day 1 (1 sep 2021)
-    cases = c('delta' = input$init_cases_delta, 'omicron' = 0)
-    
     # run sim
-    owid_SA = sim(R, cases, input$first_case_omicron)
+    owid_SA = sim(R, input$init_cases_delta, input$first_case_omicron)
     
     owid_SA
   })
