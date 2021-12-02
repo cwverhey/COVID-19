@@ -64,7 +64,7 @@ ui <- fluidPage(
       br(),
       
       h4('Omicron'),
-      sliderInput("Romicron", label = "R", min = 1.0, max = 10.0, step = 0.01, round = -2, value = 3.54),
+      sliderInput("Romicron", label = "R", min = 1.0, max = 33.0, step = 0.01, round = -2, value = 3.54),
       sliderInput("first_case_omicron",
                   label="initial case",
                   min = min(owid_SA$date),
