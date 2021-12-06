@@ -149,7 +149,7 @@ optimal = as.list(optimal[1,])
 save(owid_SA, rmse_df, optimal, file="omicron_SA.RData")
 
 #
-# deploy ----
+# deploy to shinyapps.io ----
 #
 
-#deployApp()
+deployApp()
