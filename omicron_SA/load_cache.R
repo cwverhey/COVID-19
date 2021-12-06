@@ -1,4 +1,4 @@
-setwd("~/Progs/COVID-19/omicron_SA")
+setwd("~/Progs/R/omicron_SA")
 
 library("dplyr")
 library("ggplot2")
