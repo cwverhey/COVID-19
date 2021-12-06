@@ -71,7 +71,7 @@ ui <- fluidPage(
                       could have been detected as SARS-CoV-2 positive. Then, the parameters for the best detected fit are selected
                       as the default date in the app.
                       <br />
-                      At the time of writing (6 December), this simulation shows how uncertain the R of Omicron is;
+                      At the time of writing (6 December), this simulation shows how uncertain the R of Omicron still is;
                       real-world cases will fit the model similarly over a vast range of R(omicron) values, as long as
                       a suitable date for the first Omicron case is chosen. The later the initial Omicron case, the higher R(omicron) needs to be.<br />
                       <br />'),
@@ -87,8 +87,8 @@ ui <- fluidPage(
             <h5>based on total confirmed SARS-CoV-2 cases in South Africa</h5>
             <br />
             <h5>Purpose</h5>
-            The app simulates how many cases would be expected each day, given values for R(delta),
-            R(omicron), and the date of the initial Omicron case. It also illustrates and quantifies
+            The app simulates how many cases would be expected each day, given values for R(delta) and
+            R(omicron) in South Africa, and the date of the initial Omicron case. It also illustrates and quantifies
             the fit with real world case data. This allows to get an estimation of the current R values,
             as well as a grasp of their (un)reliabilities.<br />
             <br />
