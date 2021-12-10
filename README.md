@@ -2,7 +2,7 @@
 
 ## [omicron growth in South Africa](omicron_SA)
 
-Simulation app to estimate R-values for Delta and Omicron, based on total confirmed SARS-CoV-2 cases in South Africa. This app allows estimate the current R values per variant and to get a grasp of the (un)reliabilities in these estimations.
+Simulation app to estimate R-values for Delta and Omicron, based on total confirmed SARS-CoV-2 cases in South Africa. This app allows to estimate the current R values per variant and to get a grasp of the (un)reliabilities in these estimations.
             
 The best fitting parameter values are updated each day, and set as the default values when loading the app. They are also visible on the 'Optimal fit' tab.
 
