@@ -4,6 +4,8 @@ Simulation app to estimate R-values for Delta and Omicron, based on total confir
 ## Use
 The app is live here: https://cwverhey.shinyapps.io/omicron_SA/
 
+![screenshot preview](screenshot.png)
+
 ## Purpose
 The app simulates how many cases would be expected each day given current values for R(delta) and R(omicron) in South Africa, and the date of the initial Omicron patient. It also illustrates and quantifies the fit with real world data. This allows to get a grasp of the (un)reliabilities in current estimations of R values.
             
