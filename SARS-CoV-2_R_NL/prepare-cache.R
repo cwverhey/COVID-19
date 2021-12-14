@@ -4,11 +4,14 @@ library("shinyWidgets")
 library("shinyjs")
 library("ggplot2")
 library("scales")
+library("rsconnect")
+
+setwd("~/R/COVID-19/SARS-CoV-2_R_NL")
 
 Sys.setlocale("LC_TIME","nl_NL.UTF-8")
 
 # source files need to be in <jsondir>/reproductiegetal_*.json
-jsondir = '/Volumes/caspar/RIVM'
+jsondir = '~/R/RIVM'
 
 # cache file
 cachefile = 'R.app.cache.RData'

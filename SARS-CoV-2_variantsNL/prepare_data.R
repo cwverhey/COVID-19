@@ -7,7 +7,7 @@
 Sys.setlocale("LC_TIME","nl_NL.UTF-8")
 lastupdate = format(Sys.Date(), "%d %b %Y")
 
-setwd("~/Progs/COVID-19/SARS-CoV-2_variantsNL")
+setwd("~/R/COVID-19/SARS-CoV-2_variantsNL")
 
 # install.packages(c("dplyr","jsonlite","data.table","scales","lubridate","stringr","rsconnect",'ggplot2', 'shiny', 'shinyWidgets'))
 
