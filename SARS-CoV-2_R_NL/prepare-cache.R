@@ -61,4 +61,4 @@ print("saved")
 # upload to shinyapps.io
 # rsconnect::setAccountInfo(name="<ACCOUNT>", token="<TOKEN>", secret="<SECRET>")
 # rsconnect::configureApp("SARS-CoV-2_variantsNL")
-deployApp()
+deployApp(appName='R_NL')
