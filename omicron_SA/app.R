@@ -64,22 +64,22 @@ ui <- fluidPage(
         tabPanel("Optimal fit",
                  HTML('<br />
                       <h4>Daily optimal fit</h4>
-                      To maximize the fit of the model with case data, (locally) optimal parameter values are recalculated
-                      daily, every time the amount of cases is updated.<br />
+                      To maximize the fit of the model with case data, (local) optimal parameter values are recalculated
+                      daily - every time the amount of cases is updated.<br />
                       <br />
-                      First, the locally optimal values are calculated for each possible date that the first Omicron case
-                      could have been detected as SARS-CoV-2 positive. Then, the parameters for the best detected fit are selected
-                      as the default date in the app.
+                      Local optimal values are calculated for each possible date that the first Omicron case
+                      could have been detected as SARS-CoV-2 positive. Optimal fit is defined here as the lowest possible mean absolute error (MAE).
+                      The day with the best fit is selected as the default date in the app.<br />
                       <br />
                       At the time of writing (6 December), this simulation shows how uncertain the R of Omicron still is;
                       real-world cases will fit the model similarly over a vast range of R(omicron) values, as long as
                       a suitable date for the first Omicron case is chosen. The later the initial Omicron case, the higher R(omicron) needs to be.<br />
                       <br />'),
-                 h5("optimal RMSE per day of first Omicron case"),
-                 plotOutput("plot_rmse"),
+                 h5("optimal MAE per day of first Omicron case"),
+                 plotOutput("plot_mae"),
                  HTML("<br />"),
-                 h5("parameters for optimal RMSE per day of first Omicron case"),
-                 dataTableOutput("table_rmse")
+                 h5("parameters for optimal MAE per day of first Omicron case"),
+                 dataTableOutput("table_mae")
                  ),
         tabPanel("Info",
                  HTML("<br />
@@ -137,11 +137,11 @@ server <- function(input, output, session) {
     df = sim(owid_SA, R, input$init_cases_delta, input$first_case_omicron)
     
     # calculate correlation
-    rmse_raw = rmse(df$new_cases[!is.na(df$new_cases)], df$sim_cases[!is.na(df$new_cases)])
-    rmse_owid_smoothed = rmse(df$new_cases_smoothed[!is.na(df$new_cases_smoothed)], df$sim_cases[!is.na(df$new_cases_smoothed)])
+    mae_raw = mae(df$new_cases[!is.na(df$new_cases)], df$sim_cases[!is.na(df$new_cases)])
+    mae_owid_smoothed = mae(df$new_cases_smoothed[!is.na(df$new_cases_smoothed)], df$sim_cases[!is.na(df$new_cases_smoothed)])
     
     # plot
-    subtitle = paste0("Delta: R=",format(R['delta'],nsmall=2),", ",input$init_cases_delta," cases on Aug 26 ■ Omicron: R=",format(R['omicron'],nsmall=2),", first case on ",format(input$first_case_omicron,"%b %d")," ■ R(omicron)/R(delta)=",round(R['omicron']/R['delta'],digits=1),"\nRMSE(raw cases, simulated)=",round(rmse_raw,3)," ■ RMSE(OWiD smoothed cases, simulated)=",round(rmse_owid_smoothed,3))
+    subtitle = paste0("Delta: R=",format(R['delta'],nsmall=2),", ",input$init_cases_delta," cases on Aug 26 ■ Omicron: R=",format(R['omicron'],nsmall=2),", first case on ",format(input$first_case_omicron,"%b %d")," ■ R(omicron)/R(delta)=",round(R['omicron']/R['delta'],digits=1),"\nMAE(raw cases, simulated)=",round(mae_raw,3)," ■ MAE(OWiD smoothed cases, simulated)=",round(mae_owid_smoothed,3))
     plot <- ggplot(df, aes(x = date)) +
       geom_smooth(aes(y=new_cases, color="cases (geom_smooth())"), lty=3) +
       geom_line(aes(y=new_cases_smoothed, color="cases (OWiD smoothed)"), lwd=.75) +
@@ -171,17 +171,17 @@ server <- function(input, output, session) {
 
   })
   
-  output$plot_rmse <- renderPlot({
+  output$plot_mae <- renderPlot({
     
-    ggplot(rmse_df, aes(x=first_omicron)) +
-      geom_point(aes(y=RMSE)) + 
+    ggplot(mae_df, aes(x=first_omicron)) +
+      geom_point(aes(y=MAE)) + 
       scale_x_date(date_breaks = "1 week", minor_breaks = "1 day", date_labels="%b %d") +
       scale_y_continuous(limits=c(0,NA)) +
-      labs(x='initial omicron case', y='optimal RMSE')
+      labs(x='initial omicron case', y='optimal MAE')
     
   })
   
-  output$table_rmse <- renderDataTable(rmse_df, options = list(paging = FALSE, searching = FALSE))
+  output$table_mae <- renderDataTable(mae_df, options = list(paging = FALSE, searching = FALSE))
   
 }
 

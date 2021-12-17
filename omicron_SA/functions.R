@@ -23,3 +23,7 @@ sim = function(df, R, delta_init_cases, omicron_first_case) {
 rmse = function(v1, v2) {
   sqrt(mean((v1 - v2)^2))
 }
+
+mae = function(v1, v2) {
+  mean(abs(v1-v2))
+}
