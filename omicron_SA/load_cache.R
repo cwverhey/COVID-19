@@ -15,10 +15,9 @@ owid_full = read.csv('https://covid.ourworldindata.org/data/owid-covid-data.csv'
   mutate(date = as.Date(date))
 
 owid_SA = owid_full %>%
-  filter(location == 'South Africa', date >= "2021-08-26") %>%
+  filter(location == 'South Africa', date >= "2021-08-26", date <= "2021-12-07") %>%
   select(date, new_cases, new_cases_smoothed)
 
-save(owid_SA, file="owid_SA.RData")
 
 #
 # calculate optimal MAE per day -> df:mae_df ----

@@ -64,16 +64,15 @@ ui <- fluidPage(
         tabPanel("Optimal fit",
                  HTML('<br />
                       <h4>Daily optimal fit</h4>
-                      To maximize the fit of the model with case data, (local) optimal parameter values are recalculated
-                      daily - every time the amount of cases is updated.<br />
-                      <br />
-                      Local optimal values are calculated for each possible date that the first Omicron case
+                      To determine which model parameters provide optimal fit with real-life observations, local optimal values are calculated for each possible date that the first Omicron patient
                       could have been detected as SARS-CoV-2 positive. Optimal fit is defined here as the lowest possible mean absolute error (MAE).
                       The day with the best fit is selected as the default date in the app.<br />
                       <br />
-                      At the time of writing (6 December), this simulation shows how uncertain the R of Omicron still is;
+                      Update 6 Dec 2021: This simulation shows how uncertain the R of Omicron still is;
                       real-world cases will fit the model similarly over a vast range of R(omicron) values, as long as
                       a suitable date for the first Omicron case is chosen. The later the initial Omicron case, the higher R(omicron) needs to be.<br />
+                      <br />
+                      Update 13 Jan 2022: Data is only considered up until December 7 2021, as the initial growth phase ended there and overall incidence started to decline.<br />
                       <br />'),
                  h5("optimal MAE per day of first Omicron case"),
                  plotOutput("plot_mae"),
@@ -92,13 +91,13 @@ ui <- fluidPage(
             the fit with real world case data. This allows to get an estimation of the current R values,
             as well as a grasp of their (un)reliabilities.<br />
             <br />
-            The best fitting parameter values are calculated automatically each day, and set as the
+            The best fitting parameter values are set as the
             default values when loading the app. They are also visible on the 'Optimal fit' tab.<br />
             <br />
             <h5>Assumptions</h5>
-            In this time frame, R stays constant per variant;<br />
-            In this time frame, the ascertainment rate stays constant (infections remain as likely to become a confirmed case);<br />
-            Daily growth rate is approximated by R^(1/5).<br />
+            - In this time frame, R stays constant per variant;<br />
+            - In this time frame, the ascertainment rate stays constant (infections remain as likely to become a confirmed case);<br />
+            - Daily growth rate is approximated by R^(1/5) (early evidence indicates Omicron propagates faster, which violates this assumption).<br />
             <br />
             <h5>Legend</h5>
             <b>cases (raw)</b> reported cases per day (there is a clear day-of-the-week effect);<br />
@@ -109,9 +108,9 @@ ui <- fluidPage(
             Looking at data from September suggests that Delta would have mostly died out by November, which is why
             in the default values in this simulation, over 95% of cases are attributed to Omicron by the end of November. However, this is not in line
             with the results from the 61 SARS-CoV-2-positive passengers who were tested in NL on 26 Nov: only 18 of them
-            carried the Omicron variant - though it not fully clear if all 61 positive passengers have been sequenced. This suggests that Delta was still
+            carried the Omicron variant - though it is not fully clear if all 61 positive passengers have been sequenced. This suggests that Delta was still
             prevalent during the simulated period, that its R increased, and as such that the R for Omicron is overestimated in this simulation (and all others I've seen).
-            On the other hand, the (probably biased) GISAID data (<a href='https://outbreak.info/situation-reports/omicron?selected=ZAF#longitudinal'>outbreak.info</a> or <a href='https://covariants.org/per-country'>covariants.org</a>)
+            On the other hand, the GISAID data (probably suffering from selection bias, <a href='https://outbreak.info/situation-reports/omicron?selected=ZAF#longitudinal'>outbreak.info</a> or <a href='https://covariants.org/per-country'>covariants.org</a>)
             suggests it's not unlikely that Omicron makes up 95% of cases.<br />
             <br />
             <h5>Credits</h5>
