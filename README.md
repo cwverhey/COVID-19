@@ -1,10 +1,18 @@
 # COVID-19 analyses and other things
 
+## [COVID-19 by age in the Netherlands](NLbyAge)
+
+Automatically updated plot of coronavirus cases, hospitalizations and deaths, per age group. Since mortality and hospitalization are very dependent on age, this gives a clearer overview than all-age statistics.
+
+See it live: https://cwverhey.shinyapps.io/NLbyAge
+
+![screenshot preview](NLbyAge/screenshot.png)
+
 ## [omicron growth in South Africa](omicron_SA)
 
 Simulation app to estimate R-values for Delta and Omicron, based on total confirmed SARS-CoV-2 cases in South Africa. This app allows to estimate the current R values per variant and to get a grasp of the (un)reliabilities in these estimations.
             
-The best fitting parameter values are updated each day, and set as the default values when loading the app. They are also visible on the 'Optimal fit' tab.
+The best fitting parameter values are set as the default values when loading the app. They are also visible on the 'Optimal fit' tab.
 
 See it live: https://cwverhey.shinyapps.io/omicron_SA
 
