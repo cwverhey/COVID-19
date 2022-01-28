@@ -7,6 +7,16 @@ library("scales")
 library("svglite")
 library("rsconnect")
 
+# set script directory as working directory for cronjob (non-interactive Rscript call)
+cmdargs = commandArgs()
+for(arg in cmdargs){
+  if(substring(arg,1,7)=="--file=") {
+    dirname = dirname(substring(arg,8))
+    cat("setwd('",dirname,"')\n", sep='')
+    setwd(dirname)
+  }
+}; rm(cmdargs, arg, dirname)
+
 #
 # GET AND MERGE DATA ------------------------------------------------------
 #
@@ -312,4 +322,4 @@ for (agegr in all_ages) {
 #
 
 save(all_weekly_long, cases_relative_monthly, file="NLbyAge.RData")
-deployApp()
+deployApp(account="cwverhey", server="shinyapps.io")
