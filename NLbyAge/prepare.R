@@ -3,6 +3,9 @@ library("stringr")
 library("tidyverse")
 library("lubridate")
 library("cbsodataR")
+library("scales")
+library("svglite")
+library("rsconnect")
 
 #
 # GET AND MERGE DATA ------------------------------------------------------
@@ -88,10 +91,10 @@ for(i in 2:8) {
 # fetch hospitalization per week per NICE-agegroup
 all_weekly = read.csv2("https://data.rivm.nl/covid-19/COVID-19_ziekenhuis_ic_opnames_per_leeftijdsgroep.csv") %>%
   mutate(first_day_of_week = as.Date(Date_of_statistics_week_start)) %>%
-  select(first_day_of_week, age=Age_group, hosp_not=Hospital_admission_notification, ic_not=IC_admission_notification) %>%
+  select(first_day_of_week, age=Age_group, hosp=Hospital_admission, ic=IC_admission) %>%
   mutate(age = NICE_agegroups[age]) %>%
   group_by(first_day_of_week, age) %>%
-  summarise(hosp_not=sum(hosp_not), ic_not=sum(ic_not))
+  summarise(hosp=sum(hosp), ic=sum(ic))
 
 rm(NICE_agegroups)
 
@@ -115,7 +118,7 @@ all_weekly = left_join(all_weekly, cases_NICE) %>%
 all_50min_temp = all_weekly %>%
   filter(age %in% c("0-19","20-29","30-39","40-49")) %>%
   group_by(first_day_of_week) %>%
-  summarise(age = "<50", hosp_not = sum(hosp_not), ic_not = sum(ic_not), cases = sum(cases))
+  summarise(age = "<50", hosp = sum(hosp), ic = sum(ic), cases = sum(cases))
 
 all_weekly = rbind(all_weekly, all_50min_temp)
 
@@ -140,7 +143,7 @@ all_weekly = left_join(all_weekly, deaths) %>%
   replace_na(list(deaths=0))
 
 # cleanup
-rm(deaths, agegroups)
+rm(deaths)
 
 
 #
@@ -150,13 +153,10 @@ rm(deaths, agegroups)
 # convert weekly data to long ---------------------------------------------
 # into `all_weekly_long`
 
-all_weekly_long = all_weekly %>% pivot_longer(c(hosp_not, ic_not, cases, deaths), names_to = 'data')
+all_weekly_long = all_weekly %>% pivot_longer(c(hosp, ic, cases, deaths), names_to = 'data')
 
 # set order of data types
-all_weekly_long$data = factor(all_weekly_long$data, levels=c("cases","hosp_not","ic_not","deaths"))
-
-# create legible date labels
-all_weekly_long$date_label = paste(format(all_weekly_long$first_day_of_week,"%d-%m"), "tot", format(all_weekly_long$first_day_of_week+6,"%d-%m-'%y"))
+all_weekly_long$data = factor(all_weekly_long$data, levels=c("cases","hosp","ic","deaths"))
 
 # remove deaths for <50
 all_weekly_long = all_weekly_long %>% filter(!(age %in% c("0-19","20-29","30-39","40-49") & data == 'deaths'))
@@ -190,9 +190,126 @@ cases_relative_monthly$percentage = cases_relative_monthly$count / cases_relativ
 # cleanup
 rm(age, date)
 
+#
+# PLOTS -------------------------------------------------------------------------------
+#
+
+# overall plot ------------------------------------------------------------
+
+plot <- ggplot(cases_relative_monthly, aes(date, age, fill=percentage)) + 
+  geom_tile(colour="gray20", size=1.5, stat="identity") +
+  geom_text(aes(label=paste0(sprintf(percentage, fmt = '%#.1f'),'%'), color=percentage), show.legend = F, size = 4.5) + 
+  
+  scale_fill_viridis_c(option = "inferno", begin=0.05, end=0.85) +
+  scale_color_viridis_c(option = "inferno", begin=0.55) +
+  labs(title="Vastgestelde besmettingen", subtitle=paste0("als percentage van de gehele leeftijdsgroep (update: ",format(Sys.Date(),"%Y-%m-%d"),")"), x="maand", y="leeftijd") +
+  theme(
+    panel.grid.major = element_blank(),
+    panel.grid.minor = element_blank(),
+    
+    text = element_text(size = 20, color="white"),
+    
+    plot.subtitle = element_text(color="white",hjust=0, margin=margin(5,0,10,0), vjust=1, size=rel(0.8)),
+    plot.margin = margin(30,30,30,30),
+    plot.background = element_rect(fill="gray20"),
+    
+    panel.background = element_rect(fill="gray30"),
+    #panel.grid.major = element_line(color="black"),
+    #panel.grid.minor = element_line(color="gray10"),
+    panel.spacing = unit(1, "lines"),
+    
+    axis.text    = element_text(color="white"),
+    axis.text.x  = element_text(angle=45, hjust=1, margin=margin(5,0,10,0)),
+    axis.text.y  = element_text(hjust=1, margin=margin(0,5,0,10)),
+    
+    legend.position = "none"
+  )
+
+svg("www/plots/cases.svg", width=20, height=10)
+print(plot)
+dev.off()
+
+
+# age-group plot ----------------------------------------------------------
+
+# function to format date-axis labels
+mklab = function(dates) {
+  
+  retval = c()
+  lastyear = ""
+  
+  for(i in seq_along(dates)) {
+    
+    d = dates[i]
+    
+    if(is.na(d)) {
+      retval = c(retval, NA)
+      next
+    }
+    
+    # year
+    if(format(d,"%Y ") != lastyear)
+      str = lastyear = format(d,"%Y ")
+    else
+      str = ""
+    
+    # begin date
+    str = paste0(str, format(d,"%b %d"), "-")
+    
+    # end date
+    if(format(d,"%m") == format(d+6,"%m"))
+      str = paste0(str, format(d+6,"%d"))
+    else
+      str = paste0(str, format(d+6,"%b %d"))
+    
+    retval = c(retval, str)
+    
+  }
+  
+  return(retval)
+  
+}
+
+# age groups to render an individual plot for
+all_ages = c("0-19","20-29","30-39","40-49","50-59","60-69","70-79","80-89","90+","<50")
+
+for (agegr in all_ages) {
+
+    if(agegr %in% c("0-19","20-29","30-39","40-49"))
+      df_plot = filter(all_weekly_long, age == agegr, data != "deaths")
+    else
+      df_plot = filter(all_weekly_long, age == agegr)
+    
+    plot = ggplot(df_plot, aes(x=first_day_of_week, y = value)) +
+      geom_vline(xintercept = as.Date(cut(Sys.Date(), "week")), color='red3', size=1.25) +
+      geom_bar(color="grey50", fill="white", stat="identity") +
+      facet_grid(data ~ ., scales = "free_y", labeller = labeller(data = c("cases"="besmet","hosp"="opnames totaal","ic"="opnames IC","deaths"="overleden"))) +
+      labs(title=paste("Leeftijd",agegr), x = "week", y = "aantal") +
+      scale_x_date(labels = mklab, date_breaks = "4 weeks", date_minor_breaks = "1 week", expand=c(0,0)) +
+      scale_y_continuous(breaks = scales::pretty_breaks(n = 3), labels = label_number(accuracy=1)) +
+      theme(
+        text = element_text(size = 20, color="white"),
+        plot.margin = margin(30,30,30,30),
+        plot.background = element_rect(fill="gray20"),
+        panel.background = element_rect(fill="gray30"),
+        panel.grid.major = element_line(color="black"),
+        panel.grid.minor = element_line(color="gray10"),
+        axis.text    = element_text(color="white"),
+        axis.text.x  = element_text(angle=45, hjust=1, margin=margin(5,0,0,0)),
+        axis.text.y  = element_text(hjust=1, margin=margin(0,5,0,0)),
+        legend.position = "none",
+        panel.spacing = unit(1, "lines")
+      )
+    
+    svg(paste0("www/plots/detail_",make.names(agegr),".svg"), width=20, height=10)
+    print(plot)
+    dev.off()
+  
+}
 
 #
-# SAVE --------------------------------------------------------------------
+# SAVE DATA ---------------------------------------------------------------
 #
 
 save(all_weekly_long, cases_relative_monthly, file="NLbyAge.RData")
+deployApp()

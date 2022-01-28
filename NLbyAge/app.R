@@ -1,17 +1,16 @@
 library("dplyr")
 library("stringr")
-library("ggplot2")
-library("viridisLite")
 library("tidyverse")
-library("grid")
-library("shiny")
-library("scales")
 
 load("NLbyAge.RData")
 
 # age groups to render an individual plot for
-all_ages = sort(unique(all_weekly_long$age))
-all_ages = all_ages[all_ages!="Unknown"]
+all_ages = c("0-19","20-29","30-39","40-49","<50","50-59","60-69","70-79","80-89","90+")
+
+groupplots = ""
+for (agegr in all_ages){
+  groupplots = paste(groupplots, paste0("<img src='plots/detail_",make.names(agegr),".svg' width='100%' />"))
+}
 
 #
 # UI ----
@@ -19,23 +18,69 @@ all_ages = all_ages[all_ages!="Unknown"]
 
 ui <- fluidPage(
   
-  # tags$head(
-  #   tags$style(HTML("
-  #           div#plot { min-width: 750px; }
-  #           div.col-sm-4 { max-width: 450px; }")
-  #   )
-  # ),
+  tags$head(
+    tags$style(HTML("
+            h4 {margin-top: 0px; }
+            h5 { margin-top: 25px; }")
+    )
+  ),
   
   titlePanel("SARS-CoV-2 / COVID-19 in Nederland per leeftijdsgroep"),
   
   tabsetPanel(
     tabPanel("Plots",
-             br(),
-             plotOutput("plot", height="600px"),
-             uiOutput("plots")
+             HTML("<img src='plots/cases.svg' width='100%' />"),
+             HTML(groupplots)
              ),
             
-    tabPanel("Tabel overzicht besmettingen",
+    tabPanel("Info",
+             HTML("<br />
+                <h4>Info</h4>
+                <p><b>Broncode</b>: <a href='https://github.com/cwverhey/COVID-19/'>GitHub</a></p>
+                <p><b>Contact</b>: CW Verhey, caspar @ verhey.net</p>
+                <p>Data wordt dagelijks opgehaald van onderstaande databronnen. Aangezien sterfte- en opnamecijfers sterk afhankelijk zijn van de leeftijd van
+                de patiëntenpopulatie worden de cijfers weergegeven per leeftijdsgroep. Dit geeft een beter overzicht van actuele ontwikkelingen dan een
+                overall-weergave.</p>
+                <p>Gegevens van de huidige week (aangegeven met een rode lijn) zijn onvolledig (besmettingen, sterfte) of afwezig (opnames).</p>
+                <h5>Leeftijdsgroepen</h5>
+                Data wordt samengevoegd per leeftijdsgroep van 10 jaar. Wegens overlappende leeftijdsgroepen in de publicaties van Osiris en NICE vormen
+                alle patiënten van 0 t/m 19 jaar één groep. Osiris publiceert de sterftecijfers onder 50 jaar als één geheel en niet per decennium, daarom is voorzien in een
+                aparte figuur met de cijfers voor 0 t/m 49 jaar.</p>
+                <br />
+                <h4>Databronnen</h4>
+                <h5>Besmettingen en overledenen</h5>
+                <p>Bron: Osiris AIZ, via <a href='https://data.rivm.nl/meta/srv/dut/catalog.search#/metadata/2c4357c8-76e4-4662-9574-1deb8a73f724'>RIVM</a></p>
+                <p>Elke laboratorium bevestigde COVID-19 patiënt in Nederland, sinds de eerste COVID-19 melding in Nederland op 27/02/2020 (Datum voor
+                statistiek kan eerder zijn). Het bestand wordt dagelijks om 16:00 ververst, op basis van de gegevens zoals op 10:00 uur die dag geregistreerd
+                staan in het landelijk systeem voor meldingsplichtige infectieziekten (Osiris AIZ).</p>
+                <p>Datum voor statistiek: eerste ziektedag, indien niet bekend, datum lab positief, indien niet bekend, melddatum aan GGD.</p>
+                <p>Leeftijdsgroep bij leven: 0-9, 10-19, ..., 90+; bij overlijden <50, 50-59, 60-69, 70-79, 80-89, 90+.</p>
+                <h5>Ziekenhuis- en IC-opnames</h5>
+                <p>Bron: NICE, via <a href='https://data.rivm.nl/meta/srv/dut/catalog.search#/metadata/759f40ae-33b4-4fc1-89d3-c4fa6393622e'>RIVM</a></p>
+                <p>De aantallen betreffen COVID-19 ziekenhuis- en IC-opnames sinds de eerste melding in Nederland (27/02/2020) tot en met de meest recente
+                complete opnameweek. De registratie van het aantal COVID-19 ziekenhuis- en IC-opnames kan achterlopen. Ziekenhuis- of IC-opnames uit de
+                meest recente complete opnameweek kunnen wel in de huidige incomplete week gemeld zijn en zijn dan ook weergegeven in dit bestand. Ziekenhuis-
+                en IC-opnames uit de meest recente incomplete week zijn niet opgenomen in dit bestand.</p>
+                <p>Een patiënt opgenomen op de IC telt ook mee in de ziekenhuisopname-cijfers. Een patiënt kan meerdere keren in het ziekenhuis of op de IC
+                worden opgenomen. In dit open databestand is alleen de eerste opname per patiënt opgenomen.</p>
+                <p>Leeftijdsgroepen van vijf jaar worden gehanteerd, met uitzondering van leeftijden onder de 15 jaar (0 - 14) of 90 jaar en hoger
+                (90+).</p>
+                <h5>Bevolkingsgrootte per leeftijdsgroep</h5>
+                <p>Bron: <a href='https://opendata.cbs.nl/statline/#/CBS/nl/dataset/83482NED/table?dl=60959'>CBS</a></p>
+                <p>Aan het einde van elke maand worden de voorlopige cijfers per de eerste van die maand gepubliceerd. Tussentijdse bijstellingen van
+                voorgaande maanden zijn mogelijk. In het derde kwartaal van elk jaar worden de voorlopige cijfers over het voorgaande jaar vervangen
+                door definitieve cijfers.</p>
+                <p>In de bevolkingsaantallen zijn uitsluitend personen begrepen die zijn opgenomen in het bevolkingsregister van een Nederlandse gemeente.
+                Personen die tot de bevolking van Nederland behoren, maar voor wie geen vaste woonplaats valt aan te wijzen, zijn opgenomen in het
+                bevolkingsregister van de gemeente 's-Gravenhage. In de bevolkingsregisters zijn niet opgenomen de in Nederland wonende personen waarvoor
+                uitzonderingsregels gelden met betrekking tot opneming in de bevolkingsregisters (bijvoorbeeld diplomaten en NAVO militairen) en personen
+                die niet legaal in Nederland verblijven.</p>
+                <p><i>Voor de figuur 'vastgestelde besmettingen' wordt per maand de betreffende bevolkingsdata gebruikt. De lopende maand gebruikt de
+                bevolkingsdata van de voorgaande maand.</i></p>
+                ")
+              ),
+    
+    tabPanel("Tabel procentuele besmettingen",
              br(),
              h4('Vastgestelde besmettingen'),
              HTML("als percentage van de bevolking, per leeftijdsgroep, per maand<br />"),
@@ -55,27 +100,19 @@ ui <- fluidPage(
              br(),
              br(),
              HTML('<b>cases</b>: aantal vastgestelde besmettingen<br />'),
-             HTML('<b>hosp_not</b>: aantal meldingen van nieuwe ziekenhuisopname (<i>hospital notification</i>)<br />'),
-             HTML('<b>ic_not</b>: aantal meldingen van nieuwe IC-opname (<i>ICU notification</i>)<br />'),
+             HTML('<b>hosp</b>: aantal nieuwe ziekenhuisopnames (t/m laatste complete week)<br />'),
+             HTML('<b>ic</b>: aantal nieuwe IC-opnames (t/m laatste complete week)<br />'),
              HTML('<b>deaths</b>: aantal overledenen (voor personen tot 50 jaar alleen gemeld onder leeftijdsgroep "<50")'),
              br(),
              br(),
              dataTableOutput("table2")
-             ),
-    
-    tabPanel("Info",
-             HTML("<br />
-                <h5>Data:</h5>
-                besmettingen, overledenen: Osiris AIZ, via <a href='https://data.rivm.nl/meta/srv/dut/catalog.search#/metadata/2c4357c8-76e4-4662-9574-1deb8a73f724'>RIVM</a><br />
-                ziekenhuisopnames: NICE, via <a href='https://data.rivm.nl/meta/srv/dut/catalog.search#/metadata/45f911c4-3a62-42f1-b594-524a75db2c94'>RIVM</a><br />
-                bevolkingsgrootte: <a href='https://opendata.cbs.nl/statline/#/CBS/nl/dataset/83482NED/table?dl=60959'>CBS</a><br />
-                <br />")
              )
+    
             ),
   
   fluidRow(
     column(3,
-      HTML("<small>Visualisatie: CW Verhey <a href='https://github.com/cwverhey/COVID-19/tree/master/NLbyAge'>GitHub</a> / <a href='https://twitter.com/casparverhey'>Twitter</a></small>")
+      HTML("<small>Visualisatie: CW Verhey <a href='https://github.com/cwverhey/COVID-19/'>GitHub</a> / <a href='https://twitter.com/casparverhey'>Twitter</a></small>")
     )
   )
 
@@ -86,40 +123,6 @@ ui <- fluidPage(
 #
 
 server <- function(input, output, session) {
-
-  output$plot <- renderPlot({
-    
-    ggplot(cases_relative_monthly, aes(date, age, fill=percentage)) + 
-      geom_tile(colour="gray20", size=1.5, stat="identity") +
-      geom_text(aes(label=label, color=percentage), show.legend = F, size = 4.5) + 
-      
-      scale_fill_viridis_c(option = "inferno", begin=0.05, end=0.85) +
-      scale_color_viridis_c(option = "inferno", begin=0.55) +
-      labs(title="Vastgestelde besmettingen", subtitle="als percentage van de gehele leeftijdsgroep", x="maand", y="leeftijd") +
-      theme(
-        panel.grid.major = element_blank(),
-        panel.grid.minor = element_blank(),
-        
-        text = element_text(size = 20, color="white"),
-        
-        plot.subtitle = element_text(color="white",hjust=0, margin=margin(5,0,10,0), vjust=1, size=rel(0.8)),
-        plot.margin = margin(30,30,30,30),
-        plot.background = element_rect(fill="gray20"),
-        
-        panel.background = element_rect(fill="gray30"),
-        #panel.grid.major = element_line(color="black"),
-        #panel.grid.minor = element_line(color="gray10"),
-        panel.spacing = unit(1, "lines"),
-        
-        axis.text    = element_text(color="white"),
-        axis.text.x  = element_text(angle=45, hjust=1, margin=margin(5,0,10,0)),
-        axis.text.y  = element_text(hjust=1, margin=margin(0,5,0,10)),
-        
-        legend.position = "none"
-      )
-    
-  })
-  
   
   output$table1 <- renderDataTable({
     
@@ -150,103 +153,6 @@ server <- function(input, output, session) {
     content = function(con) { write.csv(all_weekly_long, con) }
     )
   
-  
-  
-  output$plots <- renderUI({
-    plot_output_list <- lapply(all_ages, function(i) {
-      plotname <- paste("plot", i)
-      plotOutput(plotname, height = 700)
-    })
-    
-    # Convert the list to a tagList - this is necessary for the list of items
-    # to display properly.
-    do.call(tagList, plot_output_list)
-    })
-  
-  # Call renderPlot for each one. Plots are only actually generated when they
-  # are visible on the web page.
-  for (i in all_ages) {
-    # Need local so that each item gets its own number. Without it, the value
-    # of i in the renderPlot() will be the same across all instances, because
-    # of when the expression is evaluated.
-    local({
-      print(i)
-      my_i <- i
-      plotname <- paste("plot", my_i)
-      
-      output[[plotname]] <- renderPlot({ plotAgegroup(my_i) })
-    })
-  }
-  
-}
-
-# format date-axis labels
-mklab = function(dates) {
-  
-  retval = c()
-  lastyear = ""
-  
-  for(i in seq_along(dates)) {
-    
-    d = dates[i]
-    
-    if(is.na(d)) {
-      retval = c(retval, NA)
-      next
-    }
-    
-    # year
-    if(format(d,"%Y ") != lastyear)
-      str = lastyear = format(d,"%Y ")
-    else
-      str = ""
-    
-    # begin date
-    str = paste0(str, format(d,"%b %d"), "-")
-    
-    # end date
-    if(format(d,"%m") == format(d+6,"%m"))
-      str = paste0(str, format(d+6,"%d"))
-    else
-      str = paste0(str, format(d+6,"%b %d"))
-    
-    retval = c(retval, str)
-    
-  }
-  
-  return(retval)
-  
-}
-
-
-# plot age-specific group
-plotAgegroup = function(agegr) {
-  
-  if(agegr %in% c("0-19","20-29","30-39","40-49"))
-    df_plot = filter(all_weekly_long, age == agegr, data != "deaths")
-  else
-    df_plot = filter(all_weekly_long, age == agegr)
-  
-  ggplot(df_plot, aes(x=first_day_of_week, y = value)) +
-    geom_vline(xintercept = as.Date(cut(Sys.Date(), "week")), color='red3', size=1.25) +
-    geom_bar(color="grey50", fill="white", stat="identity") +
-    facet_grid(data ~ ., scales = "free_y", labeller = labeller(data = c("cases"="besmet","hosp_not"="opnames zkh","ic_not"="opnames IC","deaths"="overleden"))) +
-    labs(title=paste("Leeftijd",agegr), x = "week", y = "aantal") +
-    scale_x_date(labels = mklab, date_breaks = "4 weeks", date_minor_breaks = "1 week", expand=c(0,0)) +
-    scale_y_continuous(breaks = scales::pretty_breaks(n = 3), labels = label_number(accuracy=1)) +
-    theme(
-      text = element_text(size = 20, color="white"),
-      plot.margin = margin(30,30,30,30),
-      plot.background = element_rect(fill="gray20"),
-      panel.background = element_rect(fill="gray30"),
-      panel.grid.major = element_line(color="black"),
-      panel.grid.minor = element_line(color="gray10"),
-      axis.text    = element_text(color="white"),
-      axis.text.x  = element_text(angle=45, hjust=1, margin=margin(5,0,0,0)),
-      axis.text.y  = element_text(hjust=1, margin=margin(0,5,0,0)),
-      legend.position = "none",
-      panel.spacing = unit(1, "lines")
-    )
 }
 
 #--------------------------
