@@ -7,6 +7,8 @@ library("scales")
 library("svglite")
 library("rsconnect")
 
+Sys.setlocale("LC_TIME","nl_NL.UTF-8")
+
 # set script directory as working directory for cronjob (non-interactive Rscript call)
 cmdargs = commandArgs()
 for(arg in cmdargs){
@@ -99,7 +101,8 @@ for(i in 2:8) {
 }; rm(i, from1, from2, to)
 
 # fetch hospitalization per week per NICE-agegroup
-all_weekly = read.csv2("https://data.rivm.nl/covid-19/COVID-19_ziekenhuis_ic_opnames_per_leeftijdsgroep.csv") %>%
+nice = read.csv2("https://data.rivm.nl/covid-19/COVID-19_ziekenhuis_ic_opnames_per_leeftijdsgroep.csv")
+all_weekly = nice %>%
   mutate(first_day_of_week = as.Date(Date_of_statistics_week_start)) %>%
   select(first_day_of_week, age=Age_group, hosp=Hospital_admission, ic=IC_admission) %>%
   mutate(age = NICE_agegroups[age]) %>%
@@ -200,49 +203,44 @@ cases_relative_monthly$percentage = cases_relative_monthly$count / cases_relativ
 # cleanup
 rm(age, date)
 
+
+# aggregate to relative cases per agegroup per week -------------------------------
+# into df `cases_relative_weekly`
+# for plot 'vastgestelde besmettingen als % van de bevolking per leeftijdsgroep'
+
+cases_relative_weekly = cases %>%
+  filter(age != "Unknown", age != "<50") %>%
+  mutate(first_day_of_week = as.Date(cut(date, "week")), month = format(date, "%Y-%m")) %>%
+  group_by(first_day_of_week, age) %>%
+  summarise(count = sum(count), month = max(month))
+
+# calculate % cases omitted
+cat(paste0("missing cases: ",100*(1 - sum(cases_relative_weekly$count) / sum(cases$count)),"%"))
+
+# get only 28 most recent weeks
+weeks = tail(unique(cases_relative_weekly$first_day_of_week), 28)
+cases_relative_weekly = cases_relative_weekly %>% filter(first_day_of_week %in% weeks)
+
+# complete dataset with 0 for non-present groups
+for(first_day_of_week in unique(cases_relative_weekly$first_day_of_week))
+  for(age in unique(cases_relative_weekly$age))
+    if(0 == sum(cases_relative_weekly$age == age & cases_relative_weekly$first_day_of_week == first_day_of_week))
+      cases_relative_weekly = rbind(cases_relative_weekly, list(first_day_of_week=first_day_of_week, age=age, count=0, month=format(first_day_of_week, "%Y-%m")))
+
+# add demographic data
+cases_relative_weekly = left_join(cases_relative_weekly, demographics, by=c('month'='date', 'age'))
+
+# calculate proportion
+cases_relative_weekly$percentage = cases_relative_weekly$count / cases_relative_weekly$population * 100
+
+# cleanup
+rm(age, first_day_of_week, weeks)
+
 #
 # PLOTS -------------------------------------------------------------------------------
 #
 
-# overall plot ------------------------------------------------------------
-
-plot <- ggplot(cases_relative_monthly, aes(date, age, fill=percentage)) + 
-  geom_tile(colour="gray20", size=1.5, stat="identity") +
-  geom_text(aes(label=paste0(sprintf(percentage, fmt = '%#.1f'),'%'), color=percentage), show.legend = F, size = 4.5) + 
-  
-  scale_fill_viridis_c(option = "inferno", begin=0.05, end=0.85) +
-  scale_color_viridis_c(option = "inferno", begin=0.55) +
-  labs(title="Vastgestelde besmettingen", subtitle=paste0("als percentage van de gehele leeftijdsgroep (update: ",format(Sys.Date(),"%Y-%m-%d"),")"), x="maand", y="leeftijd") +
-  theme(
-    panel.grid.major = element_blank(),
-    panel.grid.minor = element_blank(),
-    
-    text = element_text(size = 20, color="white"),
-    
-    plot.subtitle = element_text(color="white",hjust=0, margin=margin(5,0,10,0), vjust=1, size=rel(0.8)),
-    plot.margin = margin(30,30,30,30),
-    plot.background = element_rect(fill="gray20"),
-    
-    panel.background = element_rect(fill="gray30"),
-    #panel.grid.major = element_line(color="black"),
-    #panel.grid.minor = element_line(color="gray10"),
-    panel.spacing = unit(1, "lines"),
-    
-    axis.text    = element_text(color="white"),
-    axis.text.x  = element_text(angle=45, hjust=1, margin=margin(5,0,10,0)),
-    axis.text.y  = element_text(hjust=1, margin=margin(0,5,0,10)),
-    
-    legend.position = "none"
-  )
-
-svg("www/plots/cases.svg", width=20, height=10)
-print(plot)
-dev.off()
-
-
-# age-group plot ----------------------------------------------------------
-
-# function to format date-axis labels
+# function to format date-axis labels --------
 mklab = function(dates) {
   
   retval = c()
@@ -280,6 +278,84 @@ mklab = function(dates) {
   
 }
 
+osiris_last_update = as.POSIXct(head(osiris$Date_file,1))
+nice_last_update = as.POSIXct(head(nice$Date_of_report,1))
+
+# overall plot per month ------------------------------------------------------
+
+plot <- ggplot(cases_relative_monthly, aes(date, age, fill=percentage)) + 
+  geom_tile(colour="gray20", size=1.5, stat="identity") +
+  geom_text(aes(label=paste0(sprintf(percentage, fmt = '%#.1f'),'%'), color=percentage), show.legend = F, size = 4.5) + 
+  
+  scale_fill_viridis_c(option = "inferno", begin=0.05, end=0.85) +
+  scale_color_viridis_c(option = "inferno", begin=0.55) +
+  labs(title="Vastgestelde besmettingen per maand", subtitle=paste0("als percentage van de gehele leeftijdsgroep (laatste data: ",format(osiris_last_update,"%Y-%m-%d %H:%M"),")"), x="maand", y="leeftijd") +
+  theme(
+    panel.grid.major = element_blank(),
+    panel.grid.minor = element_blank(),
+    
+    text = element_text(size = 20, color="white"),
+    
+    plot.subtitle = element_text(color="white",hjust=0, margin=margin(5,0,10,0), vjust=1, size=rel(0.8)),
+    plot.margin = margin(30,30,30,30),
+    plot.background = element_rect(fill="gray20"),
+    
+    panel.background = element_rect(fill="gray30"),
+    #panel.grid.major = element_line(color="black"),
+    #panel.grid.minor = element_line(color="gray10"),
+    panel.spacing = unit(1, "lines"),
+    
+    axis.text    = element_text(color="white"),
+    axis.text.x  = element_text(angle=45, hjust=1, margin=margin(5,0,10,0)),
+    axis.text.y  = element_text(hjust=1, margin=margin(0,5,0,10)),
+    
+    legend.position = "none"
+  )
+
+svg("www/plots/cases.svg", width=20, height=10)
+print(plot)
+dev.off()
+
+
+# overall plot per week ---------------------------------------------------
+
+plot <- ggplot(cases_relative_weekly, aes(first_day_of_week, age, fill=percentage)) + 
+  geom_tile(colour="gray20", size=1.5, stat="identity") +
+  geom_text(aes(label=paste0(sprintf(percentage, fmt = '%#.1f'),'%'), color=percentage), show.legend = F, size = 4.5) + 
+  
+  scale_x_date(labels = mklab, date_breaks = "1 week", expand=c(.004,.004)) +
+  
+  scale_fill_viridis_c(option = "inferno", begin=0.05, end=0.85) +
+  scale_color_viridis_c(option = "inferno", begin=0.55) +
+  labs(title="Vastgestelde besmettingen per week", subtitle=paste0("als percentage van de gehele leeftijdsgroep (laatste data: ",format(osiris_last_update,"%Y-%m-%d %H:%M"),")"), x="week", y="leeftijd") +
+  theme(
+    panel.grid.major = element_blank(),
+    panel.grid.minor = element_blank(),
+    
+    text = element_text(size = 20, color="white"),
+    
+    plot.subtitle = element_text(color="white",hjust=0, margin=margin(5,0,10,0), vjust=1, size=rel(0.8)),
+    plot.margin = margin(30,30,30,30),
+    plot.background = element_rect(fill="gray20"),
+    
+    panel.background = element_rect(fill="gray30"),
+    #panel.grid.major = element_line(color="black"),
+    #panel.grid.minor = element_line(color="gray10"),
+    panel.spacing = unit(1, "lines"),
+    
+    axis.text    = element_text(color="white"),
+    axis.text.x  = element_text(angle=45, hjust=1, margin=margin(5,0,10,0)),
+    axis.text.y  = element_text(hjust=1, margin=margin(0,5,0,10)),
+    
+    legend.position = "none"
+  )
+
+svg("www/plots/casesWeek.svg", width=20, height=10)
+print(plot)
+dev.off()
+
+# age-group plot ----------------------------------------------------------
+
 # age groups to render an individual plot for
 all_ages = c("0-19","20-29","30-39","40-49","50-59","60-69","70-79","80-89","90+","<50")
 
@@ -294,7 +370,7 @@ for (agegr in all_ages) {
       geom_vline(xintercept = as.Date(cut(Sys.Date(), "week")), color='red3', size=1.25) +
       geom_bar(color="grey50", fill="white", stat="identity") +
       facet_grid(data ~ ., scales = "free_y", labeller = labeller(data = c("cases"="besmet","hosp"="opnames totaal","ic"="opnames IC","deaths"="overleden"))) +
-      labs(title=paste("Leeftijd",agegr), x = "week", y = "aantal") +
+      labs(title=paste("Leeftijd",agegr), subtitle=paste0("laatste data besmettingen/overledenen: ",format(osiris_last_update,"%Y-%m-%d %H:%M"),", opnames: ",format(nice_last_update,"%Y-%m-%d %H:%M")), x = "week", y = "aantal") +
       scale_x_date(labels = mklab, date_breaks = "4 weeks", date_minor_breaks = "1 week", expand=c(0,0)) +
       scale_y_continuous(breaks = scales::pretty_breaks(n = 3), labels = label_number(accuracy=1)) +
       theme(

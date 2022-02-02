@@ -30,6 +30,7 @@ ui <- fluidPage(
   tabsetPanel(
     tabPanel("Plots",
              HTML("<img src='plots/cases.svg' width='100%' />"),
+             HTML("<img src='plots/casesWeek.svg' width='100%' />"),
              HTML(groupplots)
              ),
             
