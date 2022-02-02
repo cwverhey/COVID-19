@@ -289,7 +289,7 @@ plot <- ggplot(cases_relative_monthly, aes(date, age, fill=percentage)) +
   
   scale_fill_viridis_c(option = "inferno", begin=0.05, end=0.85) +
   scale_color_viridis_c(option = "inferno", begin=0.55) +
-  labs(title="Vastgestelde besmettingen per maand", subtitle=paste0("als percentage van de gehele leeftijdsgroep (laatste data: ",format(osiris_last_update,"%Y-%m-%d %H:%M"),")"), x="maand", y="leeftijd") +
+  labs(title="Vastgestelde besmettingen per maand", subtitle=paste0("als percentage van de gehele leeftijdsgroep (data: ",format(osiris_last_update,"%Y-%m-%d %H:%M"),")"), x="maand", y="leeftijd") +
   theme(
     panel.grid.major = element_blank(),
     panel.grid.minor = element_blank(),
@@ -327,7 +327,7 @@ plot <- ggplot(cases_relative_weekly, aes(first_day_of_week, age, fill=percentag
   
   scale_fill_viridis_c(option = "inferno", begin=0.05, end=0.85) +
   scale_color_viridis_c(option = "inferno", begin=0.55) +
-  labs(title="Vastgestelde besmettingen per week", subtitle=paste0("als percentage van de gehele leeftijdsgroep (laatste data: ",format(osiris_last_update,"%Y-%m-%d %H:%M"),")"), x="week", y="leeftijd") +
+  labs(title="Vastgestelde besmettingen per week", subtitle=paste0("als percentage van de gehele leeftijdsgroep (update: ",format(osiris_last_update,"%Y-%m-%d %H:%M"),")"), x="week", y="leeftijd") +
   theme(
     panel.grid.major = element_blank(),
     panel.grid.minor = element_blank(),
@@ -370,12 +370,14 @@ for (agegr in all_ages) {
       geom_vline(xintercept = as.Date(cut(Sys.Date(), "week")), color='red3', size=1.25) +
       geom_bar(color="grey50", fill="white", stat="identity") +
       facet_grid(data ~ ., scales = "free_y", labeller = labeller(data = c("cases"="besmet","hosp"="opnames totaal","ic"="opnames IC","deaths"="overleden"))) +
-      labs(title=paste("Leeftijd",agegr), subtitle=paste0("laatste data besmettingen/overledenen: ",format(osiris_last_update,"%Y-%m-%d %H:%M"),", opnames: ",format(nice_last_update,"%Y-%m-%d %H:%M")), x = "week", y = "aantal") +
+      labs(title=paste("Leeftijd",agegr), subtitle=paste0("data besmet/overleden: ",format(osiris_last_update,"%Y-%m-%d %H:%M"),", opnames: ",format(nice_last_update,"%Y-%m-%d %H:%M")), x = "week", y = "aantal") +
       scale_x_date(labels = mklab, date_breaks = "4 weeks", date_minor_breaks = "1 week", expand=c(0,0)) +
       scale_y_continuous(breaks = scales::pretty_breaks(n = 3), labels = label_number(accuracy=1)) +
       theme(
         text = element_text(size = 20, color="white"),
+        
         plot.margin = margin(30,30,30,30),
+        plot.subtitle = element_text(color="white",hjust=0, margin=margin(5,0,10,0), vjust=1, size=rel(0.8)),
         plot.background = element_rect(fill="gray20"),
         panel.background = element_rect(fill="gray30"),
         panel.grid.major = element_line(color="black"),
